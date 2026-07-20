@@ -572,11 +572,11 @@ const CAP={onboardingBrands:10};
 // Live pipeline — where every creator sits right now, from HubSpot deal stages (7/20). "In talks" = warm leads tracked in sourcing, pre-deal (HubSpot Negotiation stage = 0).
 const PIPESTAGES=[
  {k:'tocast',label:'Sourcing',names:[],n:30},
- {k:'warm',label:'In talks',names:['Joscelyn · Verb','Tomázia · Rishi','Austin · Torras','Couple · CustomMade','Warm leads · Guava','Warm leads · Adam Health']},
- {k:'sent',label:'Contract / closing',names:['Pedro · Torras','Doug · Torras','Stephanie · Foodbox','Herlinda · Foodbox','Chalante · iHerb','Yana · Verb','Saeda · Wilderdog','Lessence · Rishi']},
- {k:'ship',label:'Product shipping',names:['Nicole · Rishi','Afryea · Briogeo','Lauren · Briogeo','Nataly · Briogeo','Tehilah · Verb','Khaliel · EMJ','Doug · EMJ','Justine · PrayerSong','Seth · PrayerSong','Melissa · Solis']},
- {k:'prod',label:'Filming now',names:['Alexandra · Briogeo','Denise · PureTalk','Drew · Verb','Vasudha · Verb','Justin · EMJ','Maddie · iHerb','Nichelle · Awesome Aminos','Shulanda · Dekaf','Sarah · PrayerSong','Graciela · PrayerSong','Framary · PrayerSong','Nichelle · PrayerSong']},
- {k:'deliv',label:'Delivered / footage in',names:['Spencer · EMJ','Brandon · EMJ','Zain · iHerb','Katlyn · iHerb','Melissa · Biocidin','Melissa · Verb','Morgan · Verb','Yani · CustomMade','Lauren · CustomMade','Kassandra · Dirty Labs','Lauren · Dirty Labs','Crislyn · CTCT','Irma · CTCT','Vasudha · CTCT','Jared · Gravity','Crislyn · Gravity']},
+ {k:'warm',label:'In talks',n:10,names:['Joscelyn · Verb','Tomázia · Rishi','Austin · Torras','Couple · CustomMade (2)','Guava (2 warm)','Adam Health (3 warm)']},
+ {k:'sent',label:'Contract / closing',names:['Pedro · Torras','Doug · Torras','Chalante · iHerb','Stephanie · Foodbox','Kassandra · Foodbox','Herlinda · Foodbox','Lessence · Rishi','Saeda · Wilderdog']},
+ {k:'ship',label:'Product / song in transit',names:['Nicole · Rishi','Afryea · Briogeo','Lauren · Briogeo','Nataly · Briogeo','Tehilah · Verb','Yana · Verb','Khaliel · EMJ','Doug · EMJ','Sarah · PrayerSong (song)','Graciela · PrayerSong (song)','Justine · PrayerSong (song)','Framary · PrayerSong (song)','Nichelle · PrayerSong (song)','Seth · PrayerSong (song)']},
+ {k:'prod',label:'Filming now',names:['Alexandra · Briogeo','Drew · Verb','Vasudha · Verb','Justin · EMJ','Maddie · iHerb','Nichelle · Awesome Aminos']},
+ {k:'deliv',label:'Delivered / footage in',names:['Shante · Gravity','Spencer · EMJ','Brandon · EMJ','Zain · iHerb','Katlyn · iHerb','Melissa · Verb','Morgan · Verb','Yani · CustomMade','Lauren · CustomMade','Kassandra · Dirty Labs','Lauren · Dirty Labs','Crislyn · CTCT','Irma · CTCT','Vasudha · CTCT','Jared · Gravity','Crislyn · Gravity']},
 ];
 const GATELABEL={sourcing:'Sourcing · yours',product:'Product / shipping',client:'Client',vendor:'3rd-party',ontrack:'Filming',design:'Footage in · design',queued:'Upstream'};
 const GATECOLOR={sourcing:'var(--s-sent)',product:'var(--s-ship)',client:'var(--flag)',vendor:'var(--s-signed)',ontrack:'var(--s-deliv)',design:'var(--muted)',queued:'var(--muted)'};
@@ -584,33 +584,34 @@ const GATECOLOR={sourcing:'var(--s-sent)',product:'var(--s-ship)',client:'var(--
 // g: sourcing(hers) | product(shipping) | client | vendor(3rd-party e.g. Billo/song platform) | ontrack(filming) | design(footage in, done her side)
 const MBDATA=[
  {b:'Project Foodbox',dels:[
-   {d:'D2',cc:'Food/lifestyle library',st:'Sourcing 2 of 4 · 2 out for signature',eta:'~Early Aug',g:'sourcing',toCast:2,risk:true,
-    why:'The client originally planned to source its own patients; on 6/1 it handed sourcing to us to find external creators from scratch — this is the first external round. Two are now closed and out for signature; the last two need a specific family profile (narrow pool), and product (boxes + groceries) can\'t ship until it\'s decided who sends it.',
-    mb:'Realistic ~early Aug for the two signed creators; the family-profile slots land later. Two brief items are still open on the client/account side — who ships the boxes + groceries, and whether the specific-family casting is required — which set the pace here.'},
+   {d:'D2',cc:'Food/lifestyle library',st:'1 left to cast (family, ~tomorrow) · others closing, product shipping',eta:'~Aug 3',g:'sourcing',toCast:1,risk:true,
+    why:'The client originally planned to source its own patients; on 6/1 it handed sourcing to us to find external creators from scratch — the first external round. Two are closed and product is shipping (MB sent Kassandra\'s 7/20); the last one needs a specific family profile and should cast ~tomorrow.',
+    mb:'Agreed ~Aug 3 with MB today, once the family creator casts (~tomorrow) and product lands. The lag traces to the 6/1 client model-flip and the shipping owner settling only now — not casting.'},
    {d:'D1',cc:'Onboarding',st:'Delivered',g:'design',done:true,why:'Complete.'}]},
  {b:'Adam Health',dels:[
-   {d:'D2',cc:'3 face-to-cam concepts',st:'Sourcing 3 · warm leads',eta:'~Early Aug',g:'sourcing',toCast:3,
-    why:'Scripts client-approved 7/10; Rx product so nothing ships — the only input left is casting 3 from warm leads. The earlier client concept-approval gate is resolved.'},
+   {d:'D2',cc:'3 face-to-cam concepts',st:'Sourcing 3 · warm leads',eta:'~Aug 3',g:'sourcing',toCast:3,
+    why:'Scripts client-approved 7/10; Rx product so nothing ships — the only input left is casting 3 from warm leads. The earlier client concept-approval gate is resolved.',
+    mb:'Agreed ~Aug 3 with MB today — sourcing 3 from warm leads, no product to ship.'},
    {d:'D1',cc:'Walkthrough + motion',st:'Delivered',g:'design',done:true,why:'Finals delivered 6/10.'}]},
  {b:'iHerb',dels:[
-   {d:'D4 Promo',cc:'30th-anniversary push',st:'Sourcing · client #1 priority',eta:'~Aug 10',g:'sourcing',toCast:2,
-    why:'Client\'s top-priority promo. Scripts approved; casting is the only gate. MB moved the casting date to 7/31 and flagged a tighter, newly-discovered client deadline.'},
-   {d:'D4 CGN',cc:'House-brand ads',st:'With design/copy team',g:'design',done:true,why:'Internally-filmed + copy team; not a Tristina casting item.'}]},
+   {d:'D4 Promo',cc:'30th-anniversary · 7 concepts',st:'1 of 7 signed · client #1 priority',eta:'~Aug 10',g:'sourcing',toCast:6,
+    why:'Client\'s top-priority promo. Chalante signed 7/20; Monica asked for her contract 7/17 (still to send); 5 concepts have no creator yet. Casting due 7/24 — tight with 6 open.'},
+   {d:'D4 CGN',cc:'House-brand ads',st:'With house design/copy team',g:'design',done:true,why:'Internally filmed (LactoBif→David, CollagenUp→Cheryl); not a Tristina casting item.'}]},
  {b:'Guava',dels:[
-   {d:'D4',cc:'4 concepts',st:'Sourcing 4 (2 warm)',eta:'~Aug 8–12',g:'sourcing',toCast:4,
-    why:'Scripts approved 7/16 (client sat on them until then). Client self-fulfills the stroller after creators are cast, so casting + client shipping set the date.'},
-   {d:'D3 pickup',cc:'Amaya reshoot',st:'Collecting reshoot',eta:'~Late Jul',g:'sourcing',pickup:true,
-    why:'D3 delivered; client wants one creator to re-record more naturally. I collect the reshoot.'},
+   {d:'D4',cc:'4 concepts',st:'Sourcing 4 · 0 signed',eta:'~Aug 8–12',g:'sourcing',toCast:4,
+    why:'Scripts approved 7/16 (client sat on them until then). Zero creators signed yet (2 unconfirmed warm leads); client ships the stroller once cast, so casting + shipping set the date.'},
+   {d:'D3 pickup',cc:'Amaya reshoot',st:'Reshoot overdue (due 7/17)',eta:'~late Jul',g:'sourcing',pickup:true,
+    why:'D3 ad delivered, but the client wanted Amaya to re-record; her reshoot is overdue (due 7/17) and hasn\'t come in yet — I need to get it from her.'},
    {d:'D1–D3',cc:'',st:'Delivered',g:'design',done:true,why:'Delivered — with design.'}]},
  {b:'Torras',dels:[
-   {d:'D1',cc:'Phone case',st:'Sourcing 2 · product stolen',eta:'~Mid–late Aug',g:'product',toCast:2,
-    why:'1 of 4 signed, ~2 more to source (niche: creators who own the specific phone — the dummy-phone workaround is resolved). Client self-fulfills product, and the shipped cases were STOLEN after delivery (7/13–14), so nothing can go to creators yet.',
-    mb:'Filming can\'t start until replacement product reaches the creators; sourcing the last two runs in parallel.'}]},
+   {d:'D1',cc:'Phone case',st:'2 signed · 2 to cast · product to ship',eta:'~mid–late Aug',g:'product',toCast:2,
+    why:'Pedro signed; Doug signed today (7/20). 2 niche slots still to source (must own the specific phone). Getting product to the signed creators is the gate — the method is still being worked out. (Separately, BiddyCo\'s in-house filming stock was stolen — a related headache, not the creator blocker.)',
+    mb:'Filming starts once product reaches Pedro & Doug; sourcing the last 2 runs in parallel.'}]},
  {b:'Verb',dels:[
-   {d:'Dandruff',cc:'4 ads',st:'2 filming · 2 to cast',eta:'~Late Jul–early Aug',g:'sourcing',toCast:2,
-    why:'Two creators have product and are filming. The two still to cast are the ones whose outreach was throttled by the email-deliverability outage (fixed 7/2); now sourcing.'},
-   {d:'Dry Shampoo',cc:'Vasudha',st:'Signed · filming',eta:'~Jul 23',g:'ontrack',why:'Signed, product in, filming.'},
-   {d:'New batch',cc:'4 concepts',st:'Sourcing 4',eta:'~Aug 10',g:'sourcing',toCast:4,why:'Fresh sourcing round (no script approval needed for Verb).'},
+   {d:'Dandruff',cc:'4 ads',st:'1 left to cast · Drew filming',eta:'~early Aug',g:'sourcing',toCast:1,
+    why:'Drew is filming, Tehilah just shipped, Yana confirmed 7/19. Just Joscelyn left to cast — her yes was stuck in spam from the deliverability outage (fixed 7/2).'},
+   {d:'Dry Shampoo',cc:'4 ads',st:'3 of 4 footage in · Vasudha filming',eta:'~late Jul',g:'ontrack',why:'Melissa, Yani, Raquel are in with the editor; Vasudha is the last one still filming.'},
+   {d:'New batch (D9)',cc:'Black Currant',st:'Not started · low priority',eta:'~Aug 28',g:'sourcing',toCast:4,why:'Footage due 8/28 (MB set 7/20); casting 7/31. Flagged low priority; not yet sourced.'},
    {d:'Density Serum',cc:'Mariah',st:'Signed · long use-window',eta:'~Aug 3',g:'product',why:'Signed; a multi-week before/after use window is the natural gate.'}]},
  {b:'Rishi',dels:[
    {d:'D3',cc:'Iced tea / matcha / mocktail',st:'Partly cast · ~4 to cast',eta:'~Mid–late Aug',g:'sourcing',toCast:4,
@@ -626,13 +627,13 @@ const MBDATA=[
     why:'Fully cast (last slot signed 7/17). Product ships from Briogeo (~7 days) — one creator is filming, the rest are waiting on product to arrive. Product arrival sets the date.'},
    {d:'D2 pickup',cc:'Aisha',st:'Footage in — with design',g:'design',done:true,pickup:true,why:'Pickup collected 7/17 (ahead of the due date); the slo-mo retime is design\'s to finish.'}]},
  {b:'Telrite / PureTalk',dels:[
-   {d:'D1',cc:'Promo',st:'Signed · filming',eta:'~Jul 24',g:'ontrack',why:'Denise signed 7/14 and is filming; footage due ~7/24. On track.'}]},
+   {d:'D1',cc:'Promo',st:'Interested · brief + signature to send',eta:'~late Jul',g:'sourcing',why:'Denise replied interested 7/9; the brief + contract still need to go out (copy locked 7/16). Not filming yet — 7/24 at risk until that\'s sent.'}]},
  {b:'Constant Contact',dels:[
    {d:'Promo (BACKTOBIZ26)',cc:'1 rush creator',st:'Sourcing 1 · rush',eta:'~Late Jul',g:'sourcing',toCast:1,
     why:'Replaces two dead concepts; needs one rush creator, script ready 7/20. No physical product (SaaS).',
     mb:'Final ad due to client 8/3 — a genuine rush; the sooner the creator books, the safer that date.'},
-   {d:'D4',cc:'Monthly creative',st:'Footage in · one pickup 7/22',eta:'7/22 pickup',g:'sourcing',pickup:true,
-    why:'Footage in and in design; one lifestyle b-roll pickup (Vasudha) that I collect and re-upload, due 7/22.'},
+   {d:'D4',cc:'Monthly creative',st:'Complete — all footage in, with design',g:'design',done:true,
+    why:'All footage in, including the lifestyle b-roll pickup — now with design.'},
    {d:'D5',cc:'Monthly creative',st:'Concepting — pre-casting',eta:'TBD',g:'client',
     why:'Scripts/concepts not yet approved, so there\'s nothing to cast against yet — waiting on the creative + client approval cycle.'}]},
  {b:'Every Man Jack',dels:[
@@ -643,47 +644,47 @@ const MBDATA=[
    {d:'D3',cc:'Custom-song reactions',st:'Casting complete · awaiting songs/filming',eta:'~Jul 30–early Aug',g:'vendor',
     why:'Casting is complete. The "product" is a custom song the vendor platform generates (7–14 days) before the creator can film. Five of six songs are in; one (Seth) is still generating — that vendor turnaround is the gate, not casting.'}]},
  {b:'CustomMade',dels:[
-   {d:'D4 pickup',cc:'Yani reshoot',st:'Collecting reshoot',eta:'~Jul 22',g:'sourcing',pickup:true,
-    why:'Client wants the hooks redone with the ring on camera. The creator is re-recording (back in town ~7/20); I collect and re-upload her footage — I even cleaned up the low hook audio myself.'},
+   {d:'D4 pickup',cc:'Yani hook reshoot',st:'Footage in · one hook re-recording',eta:'~Jul 22',g:'sourcing',pickup:true,
+    why:'Her footage is largely in (7/10) and Hook 1 is done; just Hook 2 re-recorded with the ring visible is pending. She\'s back from travel and re-submitting by ~7/21; design is proceeding in parallel.'},
    {d:'D5 couple',cc:'New couple concept',st:'Sourcing 2 (couple) · awaiting client script',eta:'Weeks out',g:'client',toCast:2,
     why:'A new concept casting one real couple. I\'m sourcing them, and the client\'s script is still pending final sign-off — that plus custom-ring lead time puts footage weeks out.'}]},
  {b:'Awesome Aminos',dels:[
    {d:'D1',cc:'Kids / picky-eater',st:'Cast · product shipping',eta:'~Jul 27',g:'product',
     why:'Creator cast and approved; the client ships product (ordered ~7/9). Product arrival sets the date. On track.'}]},
  {b:'EllaDX',dels:[
-   {d:'D2',cc:'Lab-test testimonials',st:'Cast · blocked on client lab results',eta:'TBD',g:'client',
-    why:'Two creators are cast and ready but can\'t film until they receive their own lab results from the client (a broken patient portal). I pulled the footage date 7/17 because it\'s fully stalled on the client. The other creators on this batch are already delivered.',
-    mb:'Waiting on the client\'s lab results before either creator can film — a nudge there moves it.'}]},
+   {d:'D2',cc:'Lab-test testimonials',st:'2 delivered · 2 blocked on client',eta:'TBD',g:'client',
+    why:'Two creators are delivered. The other two are stuck on the client: Alexandra is waiting on lab results (redraw not released), and Makenzie is out on a family loss with no at-home testing. No footage date can be set until the client side clears.',
+    mb:'Both remaining are client-side (lab results / a family emergency), not casting.'}]},
  {b:'Dekaf',dels:[
-   {d:'D3 pickup',cc:'Shulanda summer reshoot',st:'Collecting reshoot',eta:'TBD',g:'sourcing',pickup:true,
-    why:'D3 delivered; the client asked for more elevated, summery/outdoor footage. I\'m collecting the creator\'s reshoot; design is waiting on it.'}]},
+   {d:'D3 pickup',cc:'Shulanda summer reshoot',st:'Reshoot overdue (due 7/16)',eta:'TBD',g:'sourcing',pickup:true,
+    why:'D3 ad delivered, but the client rejected the footage on quality and wants an elevated summer reshoot. Shulanda re-signed 7/10; her reshoot is now overdue (due 7/16) and hasn\'t come in — I need to get it from her.'}]},
  {b:'Biocidin',dels:[
    {d:'D2',cc:'Supplement',st:'Sourcing 1–2 · scripts in progress',eta:'~Early Aug',g:'sourcing',toCast:2,
-    why:'One creator (Melissa) already delivered; sourcing one or two more. Scripts for the remaining concepts are still being written.'}]},
+    why:'Melissa is cast and product arrived, but her footage isn\'t confirmed in yet. Sourcing 1–2 more (may collapse to 1); scripts still being finalized (two tasks due today).'}]},
  {b:'Dirty Labs',dels:[
-   {d:'D1',cc:'Detergent',st:'Footage in — with design',g:'design',done:true,why:'Both creators delivered ~7/17; now with design. No reshoot on my side.'},
+   {d:'D1',cc:'Detergent',st:'Footage in — still in design',g:'design',done:true,why:'Both creators\' footage in; the ad is still being finished internally (design iterating), not yet delivered to the client. No reshoot on my side.'},
    {d:'D2',cc:'',st:'Pre-sourcing (creative call 7/16)',eta:'TBD',g:'queued',why:'Just kicked off; scripts not ready, so casting hasn\'t opened.'}]},
  {b:'Wilderdog',dels:[
-   {d:'D1',cc:'Dog gear',st:'~90% · Saeda reshoot pending',eta:'~Early Aug',g:'product',pickup:true,
-    why:'Most of D1 is delivered; the UGC needs a reshoot because the client added a branded-leash requirement that was never in the original brief. The branded leash hasn\'t shipped to the creator yet, so filming can\'t happen — a product issue, not casting.'},
+   {d:'D1',cc:'Dog gear',st:'~90% · Saeda reshoot blocked',eta:'~Early Aug',g:'product',pickup:true,
+    why:'Most of D1 is delivered; the UGC needs a reshoot because the client added a branded-leash requirement that wasn\'t in the brief. Two gates: the branded leash still has to be ordered + shipped (not done), and Saeda\'s reshoot contract is sent but unsigned (she\'s been unresponsive since ~6/15).'},
    {d:'D2',cc:'',st:'Pre-script',eta:'TBD',g:'queued',why:'Scripting not until ~7/23; no casting task yet.'}]},
  {b:'Nibbles',dels:[
-   {d:'D6',cc:'Insurance UGC',st:'Sourcing 1–2',eta:'Aug 5 (at risk)',g:'sourcing',toCast:2,risk:true,
-    why:'Casting landed on my plate 7/18 with an 8/5 footage date; sourcing hasn\'t begun and there\'s an open question of whether it\'s 1 or 2 creators. 16 days out, so the date is at risk pending that clarification.'},
+   {d:'D6',cc:'Insurance UGC',st:'Sourcing 1',eta:'Aug 5 (at risk)',g:'sourcing',toCast:1,risk:true,
+    why:'Resolved to 1 external creator + 1 in-house shot (7/18); MB set the 8/5 footage date. Sourcing hasn\'t begun — tight but feasible if outreach starts now.'},
    {d:'D5',cc:'',st:'VO-only — no creator',g:'design',done:true,why:'No UGC this round (VO only).'}]},
  {b:'Gravity',dels:[
-   {d:'D1',cc:'Coaching program',st:'Cast concepts delivered (Crislyn, Shante) · one to Billo',eta:'Billo turnaround',g:'vendor',
-    why:'Digital program, no product. My cast concepts (Crislyn, Shante) are delivered; the last one ("This Could Be You") was routed to Billo — a mutual call with MB on 7/2 after the deliverability outage put sourcing behind. That concept now depends on Billo\'s turnaround, off my plate.'},
-   {d:'D2',cc:'',st:'Delivered (Jared)',g:'design',done:true,why:'Jared\'s concept delivered — with design. (One concept was de-scoped by design, not casting.)'}]},
+   {d:'D1',cc:'Coaching program',st:'Shante delivered · Crislyn footage in · one to Billo',eta:'Billo turnaround',g:'vendor',
+    why:'Digital, no product. Shante is delivered; Crislyn\'s footage is in and with the editor (ad due 7/24). The last concept ("This Could Be You") was posted to Billo and reassigned off my plate (to Sharon) on 7/20.'},
+   {d:'D2',cc:'Sign-up flow',st:'Jared footage in (7/19) · 1 more to cast',eta:'~late Jul',g:'sourcing',toCast:1,
+    why:'Jared\'s footage just went to the editor (7/19–20) after an intro reshoot. One more D2 creator is still on me to source.'}]},
  {b:'Solis',dels:[
-   {d:'On-site add-on',cc:'Mammogram shoot',st:'Blocked on client ~3 wks',eta:'TBD',g:'client',
-    why:'The main batch is delivered. The on-site add-on has stalled on ~3 weeks of client silence on a shoot date; I\'m holding and weighing whether to cancel.',
-    mb:'No client reply on a shoot date since late June.'}]},
+   {d:'Pickups + VO',cc:'Post-mammogram add-on',st:'Reassigned to me 7/20',eta:'TBD',g:'sourcing',pickup:true,
+    why:'The on-site clinic shoot was cancelled 7/15 (filming window closed). Today MB revived the non-clinic pickup shots + a new VO and put them on my plate — no date set yet.'}]},
  {b:'Mood',dels:[
    {d:'D6',cc:'Sleep gummies',st:'At final client approval',g:'client',done:true,why:'Cast, shot, footage in, design finished — awaiting client sign-off (account/design, not casting).'},
    {d:'D5',cc:'',st:'Delivered 7/13',g:'design',done:true,why:'Delivered.'},
    {d:'D7',cc:'',st:'Paused 7/16',g:'client',done:true,why:'Paused by the client.'},
-   {d:'D8',cc:'',st:'Client product confirm',g:'client',done:true,why:'Can\'t start until the client confirms product.'}]},
+   {d:'D8',cc:'',st:'Not started · account winding down',g:'client',done:true,why:'Not initiated — the client is bringing creative in-house (7/15).'}]},
 ];
 // Complex conversations — castings that carry real negotiation/logistics complexity, for MB.
 const OPENTHREADS=[
@@ -695,21 +696,22 @@ const OPENTHREADS=[
 ];
 // Footage dates: assigned (who set it) vs realistic. v: ok | tight | over. Verified 7/20 — Asana doesn't store prior date values, so "who set / when" is what's recoverable.
 const DATES=[
- {b:'Rishi',d:'D3',assigned:'Jul 31',who:'MB reset it 7/20',v:'tight',real:'~Aug 1+',why:'MB moved this to 7/31 herself on 7/20. Holds if casting closes this week; a few days over if not.'},
- {b:'Rishi',d:'D4',assigned:'Aug 7',who:'MB set it 7/20',v:'ok',real:'~Aug 7',why:'MB set this 7/20 when she cleared the casting hold — on track from that fresh start.'},
- {b:'CustomMade',d:'D4 · Yani',assigned:'Jul 21',who:'me',v:'over',real:'~late Jul',why:'Her ring was returned undelivered and has to re-ship before she can reshoot — product, not casting.'},
- {b:'Constant Contact',d:'D4 pickup',assigned:'Jul 22',who:'me, 7/17',v:'tight',real:'~Jul 22',why:'Moved to 7/22 for the lifestyle b-roll pickup I collect; holds if filmed this week.'},
- {b:'Every Man Jack',d:'D3',assigned:'Jul 29',who:'me, 7/17',v:'ok',real:'~Jul 29',why:'Product shipping + client approves every creator; MB flagged it low-priority on client unresponsiveness.'},
- {b:'Briogeo',d:'D3',assigned:'Jul 29',who:'—',v:'ok',real:'~Jul 29–early Aug',why:'Cast; holds if product reaches the creators this week.'},
- {b:'Telrite / PureTalk',d:'D1',assigned:'Jul 24',who:'—',v:'ok',real:'~Jul 24',why:'Denise filming — on track.'},
- {b:'Awesome Aminos',d:'D1',assigned:'Jul 27',who:'—',v:'ok',real:'~Jul 27',why:'Cast; client ships product. On track.'},
- {b:'Nibbles',d:'D6',assigned:'Aug 5',who:'MB, 7/18',v:'tight',real:'~Aug 5',why:'Landed on my plate 7/18; sourcing not begun and a 1-vs-2 creator question open. Tight but reachable.'},
- {b:'Verb',d:'Dandruff',assigned:'Jul 17',who:'—',v:'over',real:'~late Jul–early Aug',why:'2 of 4 still to cast — the two whose outreach was throttled by the deliverability outage (fixed 7/2).'},
- {b:'Verb',d:'Dry Shampoo',assigned:'Jul 23',who:'me, 7/8',v:'tight',real:'~Jul 23–25',why:'Product arrived mid-July; filming now.'},
- {b:'Verb',d:'New batch',assigned:'Aug 10',who:'MB, 7/18',v:'ok',real:'~Aug 10',why:'Fresh sourcing round — on track.'},
+ {b:'Project Foodbox',d:'D2',assigned:'~Aug 3',who:'agreed w/ MB today',v:'tight',real:'~Aug 3',why:'MB\'s #1 priority. Last family creator casts ~tomorrow; 2 signed + product shipping (MB requested Kassandra\'s 7/20).'},
+ {b:'Adam Health',d:'D2',assigned:'~Aug 3',who:'agreed w/ MB today',v:'tight',real:'~Aug 3',why:'MB\'s #2 priority. 3 warm leads to close (none signed yet); Rx product so nothing ships.'},
+ {b:'Rishi',d:'D3',assigned:'Jul 31',who:'MB set it 7/20',v:'tight',real:'~Aug 1+',why:'MB moved this to 7/31 herself on 7/20. ~4 still to cast; product shipped 7/17. Holds if casting closes this week.'},
+ {b:'Rishi',d:'D4',assigned:'Aug 7',who:'MB set it 7/20',v:'tight',real:'~Aug 7+',why:'MB set 8/7 when she cleared the hold 7/20 — but 0 of ~6 cast, so it\'s aggressive from a fresh start.'},
+ {b:'Every Man Jack',d:'D3',assigned:'Jul 29',who:'me, 7/17',v:'tight',real:'~early Aug',why:'2 footage in, 1 filming, 2 just shipped; client unresponsive. 7/29 optimistic — early Aug realistic.'},
+ {b:'Briogeo',d:'D3',assigned:'Jul 29',who:'—',v:'tight',real:'~Jul 29–early Aug',why:'Fully cast; product shipped 7/17–19 + Alexandra filming. Nataly (shipped 7/19) may slip a few days.'},
+ {b:'Telrite / PureTalk',d:'D1',assigned:'Jul 24',who:'—',v:'over',real:'~late Jul',why:'Denise un-briefed since her 7/9 reply — brief + signature still to send. 7/24 at risk until that goes out.'},
+ {b:'Awesome Aminos',d:'D1',assigned:'Jul 24',who:'—',v:'ok',real:'~Jul 24',why:'Nichelle in production; product arrived ~7/13. On track.'},
+ {b:'Nibbles',d:'D6',assigned:'Aug 5',who:'MB, 7/18',v:'tight',real:'~Aug 5',why:'Resolved to 1 external creator + 1 in-house shot; sourcing not begun. Tight but reachable.'},
+ {b:'Verb',d:'Dandruff',assigned:'Jul 17',who:'—',v:'over',real:'~early Aug',why:'1 left to cast (Joscelyn); Yana confirmed 7/19. Drew filming, Tehilah shipping. 7/17 blown — slips into August.'},
+ {b:'Verb',d:'Dry Shampoo',assigned:'Jul 23',who:'me, 7/8',v:'tight',real:'~late Jul',why:'3 of 4 footage in; Vasudha is the last one still filming.'},
+ {b:'Verb',d:'Density Serum',assigned:'Aug 3',who:'—',v:'ok',real:'~early–mid Aug',why:'Mariah in a ~6-week before/after use window (product shipped 6/16) — that window sets the date.'},
+ {b:'Verb',d:'New batch (D9)',assigned:'Aug 28',who:'MB, 7/20',v:'ok',real:'~Aug 28',why:'Footage due 8/28 (MB set 7/20); casting 7/31. Low priority, not yet sourced.'},
 ];
 // Active deliveries with NO footage date ever set (expected, not late).
-const NODATE='Project Foodbox D2 · Adam Health D2 · iHerb D4 Promo · Guava D4 · Torras D1 · Addyi D1 · EllaDX D2 (date pulled 7/17, client lab results) · CTCT promo (ad runs 8/3) · Wilderdog reshoot · CustomMade D5 · Dekaf pickup · Solis add-on';
+const NODATE='iHerb D4 Promo · Guava D4 · Torras D1 · Addyi D1 · EllaDX D2 (date pulled 7/17, client lab results) · CTCT promo (ad runs 8/3) · Wilderdog reshoot · CustomMade D5 · Dekaf pickup · Solis add-on';
 // court: 'external' = waiting on client / outside her hands · 'casting' = her active pipeline
 const ATTN=[
  {court:'casting',sev:'casting',pill:'Cleared to proceed',name:'Rishi',concept:'D4 · Iced Tea / Mocktail',date:'Go — MB 7/20',why:'<b>Cleared to proceed 7/20</b> — MB confirmed the scope hold is resolved; resume D4 sourcing (6 to cast). (D3 in production; chase Lessence\'s signature.)'},
@@ -952,7 +954,11 @@ document.getElementById('threads').innerHTML=OPENTHREADS.map(t=>`<div class="thr
   document.getElementById('mbreshoot').innerHTML=rs.map(r=>`<div class="loadrow2"><b>${r.b}</b> ${r.d} — ${r.done?'<span style="color:var(--s-deliv)">✓ footage in</span>':'<span style="color:var(--s-ship)">collecting</span>'}</div>`).join('');
 })();
 // Footage dates — assigned (who set) vs realistic
-document.getElementById('mbdates').innerHTML=DATES.map(r=>{const lbl={ok:'On track',tight:'Tight',over:'Over'}[r.v];const vc=r.v==='over'?'no':r.v;return `<div class="rcrow v-${vc}"><div class="rcbody"><div class="rcname">${r.b} <span class="rcc">· ${r.d}</span></div><div class="rcmb">Assigned <b>${r.assigned}</b> · ${r.who} → realistic <b>${r.real}</b></div><div class="rcreal">${r.why}</div></div><span class="rcpill ${vc}">${lbl}</span></div>`;}).join('');
+(function(){
+  const dkey=s=>{const mo=/aug/i.test(s)?800:/sep/i.test(s)?900:/jul/i.test(s)?700:750;const d=(s.match(/\d+/)||[15])[0];return mo+ +d;};
+  const sorted=DATES.slice().sort((a,b)=>dkey(a.real)-dkey(b.real));
+  document.getElementById('mbdates').innerHTML=sorted.map(r=>{const lbl={ok:'On track',tight:'Tight',over:'Over'}[r.v];const vc=r.v==='over'?'no':r.v;return `<div class="rcrow v-${vc}"><div class="rcbody"><div class="rcname">${r.b} <span class="rcc">· ${r.d}</span></div><div class="rcmb">Assigned <b>${r.assigned}</b> · ${r.who} → realistic <b>${r.real}</b></div><div class="rcreal">${r.why}</div></div><span class="rcpill ${vc}">${lbl}</span></div>`;}).join('');
+})();
 document.getElementById('mbnodate').innerHTML='<b>No date set yet:</b> '+NODATE+'.';
 // Public-link mode: on the shared GitHub link, hide the personal board and lock to Manager view
 (function(){
