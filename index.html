@@ -229,6 +229,22 @@
   .tli:first-of-type{border-top:none}
   .tli .td{width:8px;height:8px;border-radius:3px;flex:none;margin-top:5px}
   .tli b{color:var(--ink);font-weight:700}
+  .pstage{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--grid)}
+  .pstage:first-child{border-top:none}
+  .pslabel{flex:none;width:132px;font-size:.78rem;font-weight:700;color:var(--ink)}
+  .pslabel .c{color:var(--muted);font-weight:800;margin-left:3px}
+  .pschips{flex:1;display:flex;flex-wrap:wrap;gap:5px;min-width:0}
+  .loadgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
+  @media (max-width:640px){.loadgrid{grid-template-columns:1fr}}
+  .loadcol{background:var(--card);border:1px solid var(--ring);border-radius:12px;padding:12px 13px}
+  .loadh{font-size:.78rem;font-weight:800;margin-bottom:9px}
+  .loadrow{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:.76rem}
+  .loadrow .ln{flex:none;width:118px;color:var(--ink2);font-weight:600}
+  .loadrow .lb{flex:1;height:7px;background:var(--track);border-radius:5px;overflow:hidden}
+  .loadrow .lf{height:100%;background:var(--s-ship);border-radius:5px}
+  .loadrow .lv{flex:none;font-weight:800;font-size:.78rem}
+  .loadrow2{font-size:.76rem;color:var(--ink2);padding:5px 0;border-top:1px solid var(--grid)}
+  .loadrow2:first-of-type{border-top:none} .loadrow2 b{color:var(--ink)}
   .capbars{margin-top:10px}
   /* public-link mode: hide Tristina's personal board, lock to Manager view */
   body.external .vtog{display:none}
@@ -433,19 +449,28 @@ SOURCES: HubSpot (pipeline stage) · Asana (casting + footage due dates, still-t
   <!-- ============== MANAGER VIEW ============== -->
   <div id="view-mb">
     <div class="mbhead">
-      <h2>Production status — creator side</h2>
-      <p>Where every active delivery stands on <b>my</b> side (sourcing through footage-in), with a <b>realistic footage date</b> for each and the reason behind it. Everything after "footage in" — edits, GIFs, statics, final ads — is the design team's, tagged at the bottom.</p>
-      <p class="flow">My side of a delivery: <b>Source → Outreach → Contract → Signed → Ship product → Footage in</b> → hand to design. A date is only as fast as whichever step is still pending — often product in transit, not casting.</p>
+      <h2>Everything I'm carrying right now — so the dates make sense in context</h2>
+      <p>The full load in one place: how many creators sit in each stage, how many brands run at once, what's in reshoot, and how much is still to cast per brand. Every footage date below lives <b>inside</b> that — a date is only as fast as its slowest input (casting, product in transit, or a client), competing with everything else in motion.</p>
+      <p class="flow">My side of a delivery: <b>Source → Outreach → Contract → Signed → Ship product → Footage in</b> → hand to design. Everything after "footage in" (edits, GIFs, statics, final ads) is the design team's.</p>
     </div>
 
     <div class="kick">📊 The load I'm scheduling against</div>
     <div class="capgrid" id="capgrid"></div>
     <p class="legnote" style="margin:10px 2px 0">Standard turnaround is ~4–6 weeks <i>per delivery</i> — but that assumes casting isn't stacked. When this many creators are in motion and being sourced at once, they can't all film in the same window, so the newest asks realistically land closer to <b>6–8 weeks</b>. That's throughput, not a per-project delay — helpful to factor into what we promise clients.</p>
 
-    <div class="kick">🎬 Where my creators sit right now</div>
+    <div class="loadgrid">
+      <div class="loadcol"><div class="loadh">🎯 Still to cast, by brand</div><div id="mbtocast"></div></div>
+      <div class="loadcol"><div class="loadh">🔁 Reshoots I'm collecting</div><div id="mbreshoot"></div></div>
+    </div>
+
+    <div class="kick">🎬 Where every creator sits right now</div>
     <div class="fbar" id="mbfunnel"></div>
-    <div class="legrow" id="mbfunlegend" style="margin-top:11px"></div>
-    <p class="legnote" style="margin:9px 2px 0">Every secured creator, by stage — the pipeline's moving at every step (in talks → contract → signed → product → filming), not sitting idle. <b>To cast</b> is what's still being sourced.</p>
+    <div id="mbpipe" style="margin-top:12px"></div>
+    <p class="legnote" style="margin:9px 2px 0">Every secured creator, by stage — the pipeline's moving at every step (in talks → contract → signed → product → filming), not sitting idle. <b>To cast</b> is what's still being sourced. Names from HubSpot deal stages.</p>
+
+    <div class="kick">📅 Footage dates — who set it vs. what's realistic</div>
+    <div class="rchk" id="mbdates"></div>
+    <p class="legnote" style="margin:9px 2px 0"><b>The answer to "how do these compare to what was assigned":</b> most active deliveries have <b>no date set yet</b> (not late); the two that changed this week, <b>MB set herself</b>; only two are genuinely over — both external (a returned ring, the outreach outage). <span id="mbnodate"></span></p>
 
     <div class="kick">🗓️ Footage landing across the board — realistic dates side by side</div>
     <div class="tl" id="mbtimeline"></div>
@@ -544,8 +569,15 @@ const REALITY=[
 ];
 // Capacity constants not derivable from the delivery data (from Drive rundown).
 const CAP={onboardingBrands:10};
-// Live pipeline snapshot — where secured/in-progress creators sit right now (verified 7/20). tocast = still sourcing.
-const PIPE={tocast:30,warm:10,sent:4,signed:13,ship:6,prod:9};
+// Live pipeline — where every creator sits right now, from HubSpot deal stages (7/20). "In talks" = warm leads tracked in sourcing, pre-deal (HubSpot Negotiation stage = 0).
+const PIPESTAGES=[
+ {k:'tocast',label:'Sourcing',names:[],n:30},
+ {k:'warm',label:'In talks',names:['Joscelyn · Verb','Tomázia · Rishi','Austin · Torras','Couple · CustomMade','Warm leads · Guava','Warm leads · Adam Health']},
+ {k:'sent',label:'Contract / closing',names:['Pedro · Torras','Doug · Torras','Stephanie · Foodbox','Herlinda · Foodbox','Chalante · iHerb','Yana · Verb','Saeda · Wilderdog','Lessence · Rishi']},
+ {k:'ship',label:'Product shipping',names:['Nicole · Rishi','Afryea · Briogeo','Lauren · Briogeo','Nataly · Briogeo','Tehilah · Verb','Khaliel · EMJ','Doug · EMJ','Justine · PrayerSong','Seth · PrayerSong','Melissa · Solis']},
+ {k:'prod',label:'Filming now',names:['Alexandra · Briogeo','Denise · PureTalk','Drew · Verb','Vasudha · Verb','Justin · EMJ','Maddie · iHerb','Nichelle · Awesome Aminos','Shulanda · Dekaf','Sarah · PrayerSong','Graciela · PrayerSong','Framary · PrayerSong','Nichelle · PrayerSong']},
+ {k:'deliv',label:'Delivered / footage in',names:['Spencer · EMJ','Brandon · EMJ','Zain · iHerb','Katlyn · iHerb','Melissa · Biocidin','Melissa · Verb','Morgan · Verb','Yani · CustomMade','Lauren · CustomMade','Kassandra · Dirty Labs','Lauren · Dirty Labs','Crislyn · CTCT','Irma · CTCT','Vasudha · CTCT','Jared · Gravity','Crislyn · Gravity']},
+];
 const GATELABEL={sourcing:'Sourcing · yours',product:'Product / shipping',client:'Client',vendor:'3rd-party',ontrack:'Filming',design:'Footage in · design',queued:'Upstream'};
 const GATECOLOR={sourcing:'var(--s-sent)',product:'var(--s-ship)',client:'var(--flag)',vendor:'var(--s-signed)',ontrack:'var(--s-deliv)',design:'var(--muted)',queued:'var(--muted)'};
 // Per-brand → per-delivery. VERIFIED live pull Mon 7/20. Tristina's side only; nothing past "footage in" (that's design).
@@ -640,8 +672,9 @@ const MBDATA=[
     why:'Casting landed on my plate 7/18 with an 8/5 footage date; sourcing hasn\'t begun and there\'s an open question of whether it\'s 1 or 2 creators. 16 days out, so the date is at risk pending that clarification.'},
    {d:'D5',cc:'',st:'VO-only — no creator',g:'design',done:true,why:'No UGC this round (VO only).'}]},
  {b:'Gravity',dels:[
-   {d:'D1 / D2',cc:'Coaching program',st:'Cast concepts delivered · last one to Billo',eta:'Billo turnaround',g:'vendor',
-    why:'Digital program, no product. My cast concepts are delivered; the last concept was routed to Billo (a mutual call with MB on 7/2, after the email-deliverability outage put sourcing behind). That footage now depends on Billo\'s third-party turnaround — off my plate.'}]},
+   {d:'D1',cc:'Coaching program',st:'Cast concepts delivered (Crislyn, Shante) · one to Billo',eta:'Billo turnaround',g:'vendor',
+    why:'Digital program, no product. My cast concepts (Crislyn, Shante) are delivered; the last one ("This Could Be You") was routed to Billo — a mutual call with MB on 7/2 after the deliverability outage put sourcing behind. That concept now depends on Billo\'s turnaround, off my plate.'},
+   {d:'D2',cc:'',st:'Delivered (Jared)',g:'design',done:true,why:'Jared\'s concept delivered — with design. (One concept was de-scoped by design, not casting.)'}]},
  {b:'Solis',dels:[
    {d:'On-site add-on',cc:'Mammogram shoot',st:'Blocked on client ~3 wks',eta:'TBD',g:'client',
     why:'The main batch is delivered. The on-site add-on has stalled on ~3 weeks of client silence on a shoot date; I\'m holding and weighing whether to cancel.',
@@ -660,6 +693,23 @@ const OPENTHREADS=[
  {name:'CustomMade D5 couple',brand:'CustomMade',tag:'New concept',w:'A new <b>couple concept</b> — casting two real people to one idea, with the client\'s script still pending final sign-off.'},
  {name:'Yana Villanueva',brand:'Verb · Dandruff',tag:'Deliverability',w:'Her interest had been <b>landing in spam</b> — a deliverability issue on the outreach domain, not her. Surfaced and now in; a quiet reminder that the spam problem was costing real yeses.'},
 ];
+// Footage dates: assigned (who set it) vs realistic. v: ok | tight | over. Verified 7/20 — Asana doesn't store prior date values, so "who set / when" is what's recoverable.
+const DATES=[
+ {b:'Rishi',d:'D3',assigned:'Jul 31',who:'MB reset it 7/20',v:'tight',real:'~Aug 1+',why:'MB moved this to 7/31 herself on 7/20. Holds if casting closes this week; a few days over if not.'},
+ {b:'Rishi',d:'D4',assigned:'Aug 7',who:'MB set it 7/20',v:'ok',real:'~Aug 7',why:'MB set this 7/20 when she cleared the casting hold — on track from that fresh start.'},
+ {b:'CustomMade',d:'D4 · Yani',assigned:'Jul 21',who:'me',v:'over',real:'~late Jul',why:'Her ring was returned undelivered and has to re-ship before she can reshoot — product, not casting.'},
+ {b:'Constant Contact',d:'D4 pickup',assigned:'Jul 22',who:'me, 7/17',v:'tight',real:'~Jul 22',why:'Moved to 7/22 for the lifestyle b-roll pickup I collect; holds if filmed this week.'},
+ {b:'Every Man Jack',d:'D3',assigned:'Jul 29',who:'me, 7/17',v:'ok',real:'~Jul 29',why:'Product shipping + client approves every creator; MB flagged it low-priority on client unresponsiveness.'},
+ {b:'Briogeo',d:'D3',assigned:'Jul 29',who:'—',v:'ok',real:'~Jul 29–early Aug',why:'Cast; holds if product reaches the creators this week.'},
+ {b:'Telrite / PureTalk',d:'D1',assigned:'Jul 24',who:'—',v:'ok',real:'~Jul 24',why:'Denise filming — on track.'},
+ {b:'Awesome Aminos',d:'D1',assigned:'Jul 27',who:'—',v:'ok',real:'~Jul 27',why:'Cast; client ships product. On track.'},
+ {b:'Nibbles',d:'D6',assigned:'Aug 5',who:'MB, 7/18',v:'tight',real:'~Aug 5',why:'Landed on my plate 7/18; sourcing not begun and a 1-vs-2 creator question open. Tight but reachable.'},
+ {b:'Verb',d:'Dandruff',assigned:'Jul 17',who:'—',v:'over',real:'~late Jul–early Aug',why:'2 of 4 still to cast — the two whose outreach was throttled by the deliverability outage (fixed 7/2).'},
+ {b:'Verb',d:'Dry Shampoo',assigned:'Jul 23',who:'me, 7/8',v:'tight',real:'~Jul 23–25',why:'Product arrived mid-July; filming now.'},
+ {b:'Verb',d:'New batch',assigned:'Aug 10',who:'MB, 7/18',v:'ok',real:'~Aug 10',why:'Fresh sourcing round — on track.'},
+];
+// Active deliveries with NO footage date ever set (expected, not late).
+const NODATE='Project Foodbox D2 · Adam Health D2 · iHerb D4 Promo · Guava D4 · Torras D1 · Addyi D1 · EllaDX D2 (date pulled 7/17, client lab results) · CTCT promo (ad runs 8/3) · Wilderdog reshoot · CustomMade D5 · Dekaf pickup · Solis add-on';
 // court: 'external' = waiting on client / outside her hands · 'casting' = her active pipeline
 const ATTN=[
  {court:'casting',sev:'casting',pill:'Cleared to proceed',name:'Rishi',concept:'D4 · Iced Tea / Mocktail',date:'Go — MB 7/20',why:'<b>Cleared to proceed 7/20</b> — MB confirmed the scope hold is resolved; resume D4 sourcing (6 to cast). (D3 in production; chase Lessence\'s signature.)'},
@@ -847,22 +897,25 @@ const inDesign=ALLDELS.filter(d=>d.done).length;
 const pickups=ALLDELS.filter(d=>d.pickup).length;
 const footageIn=ALLDELS.filter(d=>d.done&&d.g==='design').length;
 // Capacity tiles
-const inMotion=PIPE.warm+PIPE.sent+PIPE.signed+PIPE.ship+PIPE.prod;
+const pcount=s=>s.n!=null?s.n:s.names.length;
+const byk=Object.fromEntries(PIPESTAGES.map(s=>[s.k,pcount(s)]));
+const inMotion=byk.warm+byk.sent+byk.ship+byk.prod;
 document.getElementById('capgrid').innerHTML=[
   {n:MBDATA.length,l:'active brands'},
   {n:'~'+inMotion,l:'creators secured & in motion',hot:true},
-  {n:'~'+PIPE.tocast,l:'still sourcing'},
-  {n:'~'+PIPE.prod,l:'filming right now'},
+  {n:'~'+byk.tocast,l:'still sourcing'},
+  {n:byk.prod,l:'filming right now'},
+  {n:byk.deliv,l:'delivered / footage in'},
   {n:pickups,l:'reshoots/pickups I collect'},
-  {n:'~'+CAP.onboardingBrands,l:'brands onboarding this month'},
 ].map(t=>`<div class="capt${t.hot?' hot':''}"><div class="n">${t.n}</div><div class="l">${t.l}</div></div>`).join('');
-// Pipeline funnel — where secured creators sit
+// Pipeline funnel bar + named chip rows
 (function(){
-  const order=['tocast','warm','sent','signed','ship','prod'];
-  const lbl={tocast:'To cast',warm:'In talks',sent:'Contract out',signed:'Signed',ship:'Product shipping',prod:'Filming'};
   const cssOf=k=>STAGES.find(s=>s.key===k).css;
-  document.getElementById('mbfunnel').innerHTML=order.filter(k=>PIPE[k]).map(k=>`<span class="fseg" style="flex:${PIPE[k]};background:var(${cssOf(k)})">${PIPE[k]}</span>`).join('');
-  document.getElementById('mbfunlegend').innerHTML=order.filter(k=>PIPE[k]).map(k=>`<span class="lg"><span class="dot" style="background:var(${cssOf(k)})"></span>${lbl[k]} · <b style="color:var(--ink)">${PIPE[k]}</b></span>`).join('');
+  document.getElementById('mbfunnel').innerHTML=PIPESTAGES.map(s=>`<span class="fseg" style="flex:${pcount(s)};background:var(${cssOf(s.k)})">${pcount(s)}</span>`).join('');
+  document.getElementById('mbpipe').innerHTML=PIPESTAGES.map(s=>{
+    const chips = s.names.length ? s.names.map(nm=>`<span class="chip ${s.k}">${nm}</span>`).join('') : `<span class="chip ${s.k}">~${pcount(s)} being sourced</span>`;
+    return `<div class="pstage"><div class="pslabel">${s.label} <span class="c">${pcount(s)}</span></div><div class="pschips">${chips}</div></div>`;
+  }).join('');
 })();
 // Board-wide footage timeline — realistic dates bucketed
 (function(){
@@ -890,6 +943,17 @@ document.getElementById('mbdeliv').innerHTML=MBDATA.map(x=>`<div class="mbb"><di
 // nudge — genuine client blockers MB can move
 document.getElementById('nudge').innerHTML=ALLDELS.filter(d=>d.g==='client'&&!d.done).map(d=>`<div class="etr"><div class="en">${d.brand}<span class="ec">${d.d}</span></div><div class="ed">${d.eta||''}</div><div class="eg"><span class="egp client">Client</span></div><div class="ew">${d.why}${d.mb?`<div class="emb">${d.mb}</div>`:''}</div></div>`).join('');
 document.getElementById('threads').innerHTML=OPENTHREADS.map(t=>`<div class="throw"><div class="thbody"><div class="thn">${t.name} <span class="thb">· ${t.brand}</span></div><div class="thw">${t.w}</div></div><span class="thpill">${t.tag}</span></div>`).join('');
+// To-cast by brand + reshoots in flight
+(function(){
+  const tc=MBDATA.map(x=>({b:x.b,n:x.dels.reduce((s,d)=>s+(d.toCast||0),0)})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
+  const mx=Math.max(...tc.map(x=>x.n),1);
+  document.getElementById('mbtocast').innerHTML=tc.map(x=>`<div class="loadrow"><span class="ln">${x.b}</span><span class="lb"><span class="lf" style="width:${Math.max(x.n/mx*100,8)}%"></span></span><span class="lv">${x.n}</span></div>`).join('');
+  const rs=[]; MBDATA.forEach(x=>x.dels.forEach(d=>{if(d.pickup)rs.push({b:x.b,d:d.d,done:d.done});}));
+  document.getElementById('mbreshoot').innerHTML=rs.map(r=>`<div class="loadrow2"><b>${r.b}</b> ${r.d} — ${r.done?'<span style="color:var(--s-deliv)">✓ footage in</span>':'<span style="color:var(--s-ship)">collecting</span>'}</div>`).join('');
+})();
+// Footage dates — assigned (who set) vs realistic
+document.getElementById('mbdates').innerHTML=DATES.map(r=>{const lbl={ok:'On track',tight:'Tight',over:'Over'}[r.v];const vc=r.v==='over'?'no':r.v;return `<div class="rcrow v-${vc}"><div class="rcbody"><div class="rcname">${r.b} <span class="rcc">· ${r.d}</span></div><div class="rcmb">Assigned <b>${r.assigned}</b> · ${r.who} → realistic <b>${r.real}</b></div><div class="rcreal">${r.why}</div></div><span class="rcpill ${vc}">${lbl}</span></div>`;}).join('');
+document.getElementById('mbnodate').innerHTML='<b>No date set yet:</b> '+NODATE+'.';
 // Public-link mode: on the shared GitHub link, hide the personal board and lock to Manager view
 (function(){
   var ext = location.hostname.indexOf('github.io')>=0 || /[?&](external|public)=?/.test(location.search) || location.search.indexOf('view=mb')>=0;
