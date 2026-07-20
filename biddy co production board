@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Biddyco Production Board",
+  "schemaVersion": 1,
+  "description": "BiddyCo UGC Production Board — single-page dashboard of every active UGC concept and where each creator sits in the pipeline, organized by delivery (D1–D4). Sections: Do Next priority list, stat tiles, color legend + stage funnel, ① Your court (still casting), ② Off your plate (in motion), and a full creator table. Card signals: Gmail outreach badge, casting-effort badge, casting-date and footage-date flags, pending-you-to-send flag, and Asana latest-update line. Refreshable from Asana, HubSpot, Google Drive, and Gmail on request.",
+  "mcpTools": [],
+  "mcpServerNames": []
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BiddyCo · Production Board</title>
+<style>
+  :root{
+    color-scheme: light dark;
+    --plane:#f9f9f7; --surface:#fcfcfb; --card:#ffffff;
+    --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+    --grid:#e6e5df; --ring:rgba(11,11,11,0.10);
+    --s-tocast:#b8b6ad; --s-warm:#86b6ef; --s-sent:#3987e5; --s-signed:#4a3aa7;
+    --s-ship:#eb6834; --s-prod:#1baf7a; --s-deliv:#0ca30c;
+    --flag:#d03b3b; --flagbg:rgba(208,59,59,.10);
+    --wait:#eda100; --waitbg:rgba(237,161,0,.12);
+    --castborder:#eb6834; --track:#ece9e2;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --plane:#0d0d0d; --surface:#1a1a19; --card:#201f1e;
+      --ink:#ffffff; --ink2:#c3c2b7; --muted:#8f8d86;
+      --grid:#2c2c2a; --ring:rgba(255,255,255,0.12);
+      --s-tocast:#5a594f; --s-warm:#3987e5; --s-sent:#3987e5; --s-signed:#9085e9;
+      --s-ship:#eb6834; --s-prod:#199e70; --s-deliv:#0ca30c;
+      --flag:#e05a5a; --flagbg:rgba(224,90,90,.14);
+      --wait:#fab219; --waitbg:rgba(250,178,25,.14);
+      --track:#2a2926;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--plane);color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.45;
+    -webkit-font-smoothing:antialiased;padding:18px 14px 60px}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:1.45rem;margin:0;letter-spacing:-0.02em}
+  .sub{color:var(--ink2);font-size:.85rem;margin:3px 0 0}
+  .srcs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .src{font-size:.68rem;font-weight:600;color:var(--ink2);background:var(--surface);
+    border:1px solid var(--ring);border-radius:20px;padding:3px 9px}
+  .src b{color:var(--ink)}
+  .kick{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;
+    font-weight:700;margin:26px 2px 10px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  .stat{background:var(--card);border:1px solid var(--ring);border-radius:13px;padding:13px}
+  .stat .n{font-size:1.7rem;font-weight:750;letter-spacing:-.03em;line-height:1}
+  .stat .l{font-size:.72rem;color:var(--ink2);margin-top:5px}
+  .stat.g .n{color:var(--s-deliv)} .stat.c .n{color:var(--s-ship)}
+  .ponel{background:var(--card);border:1px solid var(--ring);border-radius:13px;padding:8px 15px 14px}
+  .plist{list-style:none;margin:0;padding:0}
+  .plist li{display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--grid);font-size:.86rem;color:var(--ink2)}
+  .plist li:first-child{border-top:none}
+  .plist b{color:var(--ink)}
+  .plist .do{color:var(--ink2);font-weight:600}
+  .pr{flex:none;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:.8rem;color:#fff}
+  .p1 .pr{background:var(--flag)} .p2 .pr{background:var(--s-ship)}
+  .p3 .pr{background:var(--s-sent)} .p4 .pr{background:var(--muted)}
+  .legend{background:var(--card);border:1px solid var(--ring);border-radius:13px;padding:14px}
+  .legrow{display:flex;flex-wrap:wrap;gap:8px 14px}
+  .lg{display:flex;align-items:center;gap:7px;font-size:.76rem;color:var(--ink2)}
+  .dot{width:12px;height:12px;border-radius:4px;flex:none}
+  .legnote{font-size:.76rem;color:var(--muted);margin:11px 0 0}
+  .funnel{background:var(--card);border:1px solid var(--ring);border-radius:13px;padding:14px;margin-top:10px}
+  .fbar{display:flex;height:28px;border-radius:6px;overflow:hidden;gap:2px}
+  .fseg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:.72rem;font-weight:700;min-width:22px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+  .c{background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:15px;display:flex;flex-direction:column;gap:0}
+  .c.cast{border-left:3px solid var(--castborder)}
+  .chead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
+  .cname{font-weight:700;font-size:1.05rem;letter-spacing:-.01em}
+  .tag{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+    color:#fff;background:var(--s-ship);border-radius:20px;padding:2px 8px}
+  .castnote{font-size:.74rem;color:var(--ink2);margin:2px 0 2px;font-style:italic}
+  .orpill{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;
+    border-radius:16px;padding:3px 10px;margin:2px 0 4px;border:1px solid var(--ring)}
+  .orpill.active{color:#0b0b0b;background:var(--s-warm)}
+  .orpill.sent{color:var(--s-deliv);background:rgba(12,163,12,.10)}
+  .orpill.none{color:var(--muted);background:var(--surface)}
+  .del{border-top:1px solid var(--grid);padding:9px 0 4px}
+  .del:first-of-type{border-top:none}
+  .delhead{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .dbatch{font-weight:700;font-size:.82rem;background:var(--surface);border:1px solid var(--ring);border-radius:6px;padding:1px 7px}
+  .dconcept{font-size:.74rem;color:var(--ink2);font-weight:600}
+  .dfoot{font-size:.72rem;color:var(--ink2)} .dfoot b{color:var(--ink)}
+  .ddeliv{font-size:.7rem;color:var(--s-deliv);font-weight:600}
+  .prodtag{font-size:.68rem;font-weight:700;color:var(--s-ship);border:1px solid var(--ring);border-radius:6px;padding:1px 6px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{font-size:.72rem;font-weight:600;color:#fff;border-radius:16px;padding:2px 9px;line-height:1.55;display:inline-flex;align-items:center;gap:4px}
+  .chip.tocast{background:var(--s-tocast);color:#1a1a19}
+  .chip.warm{background:var(--s-warm);color:#0b0b0b}
+  .chip.sent{background:var(--s-sent)} .chip.signed{background:var(--s-signed)}
+  .chip.ship{background:var(--s-ship)} .chip.prod{background:var(--s-prod)} .chip.deliv{background:var(--s-deliv)}
+  .mv{font-size:.62rem;font-weight:800;background:rgba(255,255,255,.32);border-radius:8px;padding:0 4px;line-height:1.4}
+  .jump{position:sticky;top:0;z-index:5;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    background:var(--plane);padding:8px 0;margin-top:8px;border-bottom:1px solid var(--grid)}
+  .jump a{font-size:.76rem;font-weight:700;text-decoration:none;color:var(--ink2);
+    background:var(--card);border:1px solid var(--ring);border-radius:20px;padding:5px 12px}
+  .warn{font-size:.75rem;color:#0b0b0b;background:var(--waitbg);border:1px solid var(--wait);
+    border-radius:7px;padding:6px 9px;margin-top:6px;font-weight:600}
+  @media (prefers-color-scheme: dark){.warn{color:var(--ink)}}
+  .warn.send{background:var(--flagbg);border-color:var(--flag);color:var(--flag)}
+  @media (prefers-color-scheme: dark){.warn.send{color:var(--ink)}}
+  .dnote{font-size:.74rem;color:var(--flag);background:var(--flagbg);border-radius:7px;padding:5px 9px;margin-top:6px}
+  .oknote{font-size:.74rem;color:var(--s-deliv);background:rgba(12,163,12,.09);border-radius:7px;padding:5px 9px;margin-top:6px}
+  .upd{display:flex;gap:7px;align-items:flex-start;font-size:.74rem;color:var(--ink2);margin-top:9px;padding-top:9px;border-top:1px dashed var(--grid)}
+  .upd.act{color:var(--ink)}
+  .utag{flex:none;font-size:.6rem;font-weight:800;letter-spacing:.04em;color:#fff;border-radius:5px;padding:2px 6px;margin-top:1px}
+  .t-redo{background:var(--flag)} .t-edits{background:var(--s-ship)}
+  .t-approval{background:var(--s-sent)} .t-shipping{background:var(--s-prod)} .t-casting{background:var(--muted)}
+  .foot{color:var(--muted);font-size:.72rem;margin-top:24px;text-align:center;line-height:1.6}
+  details{margin-top:14px} summary{cursor:pointer;font-size:.78rem;color:var(--ink2);font-weight:600}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.8rem}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--grid)}
+  th{color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}
+  /* view toggle */
+  .vtog{display:inline-flex;background:var(--surface);border:1px solid var(--ring);border-radius:22px;padding:3px;gap:3px;margin-top:12px}
+  .vtog button{font:inherit;font-size:.8rem;font-weight:700;border:none;cursor:pointer;color:var(--ink2);background:transparent;border-radius:18px;padding:6px 14px;letter-spacing:-.01em}
+  .vtog button.on{background:var(--ink);color:var(--plane)}
+  @media (prefers-color-scheme: dark){.vtog button.on{background:var(--card);color:var(--ink);border:1px solid var(--ring)}}
+  .viewwrap[data-view="me"] #view-mb{display:none}
+  .viewwrap[data-view="mb"] #view-me{display:none}
+  /* progress meter */
+  .meter{background:var(--card);border:1px solid var(--ring);border-radius:13px;padding:15px}
+  .meter .mtop{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:9px;flex-wrap:wrap}
+  .meter .mpct{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;color:var(--s-deliv)}
+  .meter .mlbl{font-size:.8rem;color:var(--ink2)}
+  .mtrack{height:14px;background:var(--track);border-radius:8px;overflow:hidden;display:flex;gap:2px}
+  .mfill{height:100%;border-radius:8px} .mfill.deliv{background:var(--s-deliv)} .mfill.prod{background:var(--s-prod)}
+  .mfoot{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:.72rem;color:var(--ink2)}
+  .mfoot .wk{color:var(--s-deliv);font-weight:700}
+  .bprog{display:flex;align-items:center;gap:8px;margin:6px 0 2px}
+  .bprog .bt{flex:1;height:6px;background:var(--track);border-radius:4px;overflow:hidden}
+  .bprog .bf{height:100%;background:var(--s-deliv);border-radius:4px}
+  .bprog .bl{font-size:.66rem;color:var(--muted);font-weight:600;flex:none}
+  .chk{display:flex;gap:11px;align-items:flex-start;cursor:pointer}
+  .chk .box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--ring);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:#fff;background:var(--surface);transition:.12s}
+  .plist li.done .box{background:var(--s-deliv);border-color:var(--s-deliv)}
+  .plist li.done > div{opacity:.5;text-decoration:line-through;text-decoration-color:var(--muted)}
+  .clrbar{display:flex;align-items:center;gap:10px;margin:2px 2px 12px;font-size:.8rem;color:var(--ink2)}
+  .clrbar .ct{flex:1;max-width:200px;height:8px;background:var(--track);border-radius:5px;overflow:hidden}
+  .clrbar .cf{height:100%;background:var(--s-ship);border-radius:5px;transition:.2s}
+  .clrbar b{color:var(--ink)} .cleared-all{color:var(--s-deliv)!important;font-weight:700}
+  .fbtn{font:inherit;font-size:.76rem;font-weight:700;cursor:pointer;color:var(--ink2);background:var(--card);border:1px solid var(--ring);border-radius:20px;padding:5px 12px;margin-left:auto}
+  .fbtn.on{background:var(--s-ship);color:#fff;border-color:var(--s-ship)}
+  body.focusing #view-me > *{display:none!important}
+  body.focusing #view-me .jump{display:flex!important}
+  body.focusing #view-me .focuswrap{display:block!important}
+  .focuswrap{display:none}
+  .fcard{background:var(--card);border:1px solid var(--ring);border-left:4px solid var(--flag);border-radius:16px;padding:26px 24px;margin-top:20px;max-width:640px}
+  .fcard .fk{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;font-weight:800;color:var(--s-ship)}
+  .fcard .fn{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;margin:10px 0 8px}
+  .fcard .fd{font-size:1rem;color:var(--ink2)} .fcard .fd b{color:var(--ink)}
+  .fcard .fdo{margin-top:14px;font-size:1.02rem;font-weight:700;color:var(--s-ship)}
+  .fcard .fnext{margin-top:18px;font-size:.78rem;color:var(--muted)}
+  /* MB view */
+  .mbhead{background:var(--card);border:1px solid var(--ring);border-radius:13px;padding:14px 16px}
+  .mbhead h2{margin:0;font-size:1.05rem;letter-spacing:-.01em}
+  .mbhead p{margin:5px 0 0;font-size:.82rem;color:var(--ink2)}
+  .mbans{background:var(--card);border:1px solid var(--ring);border-left:4px solid var(--s-sent);border-radius:13px;padding:15px 16px;margin-top:10px}
+  .mbans h3{margin:0 0 3px;font-size:.95rem;letter-spacing:-.01em}
+  .mbans .subx{font-size:.76rem;color:var(--muted);margin:0 0 10px}
+  .mbans .qrow{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--grid)}
+  .mbans .qrow:first-of-type{border-top:none}
+  .mbans .qk{flex:none;width:118px;font-size:.76rem;font-weight:800;color:var(--ink)}
+  .mbans .qv{flex:1;min-width:0;font-size:.8rem;color:var(--ink2)}
+  .mbans .qv b{color:var(--ink)}
+  .mbans .qs{flex:none;font-size:.58rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;border-radius:20px;padding:2px 8px;margin-top:1px;white-space:nowrap}
+  .mbans .qs.done{background:rgba(12,163,12,.1);color:var(--s-deliv)}
+  .mbans .qs.go{background:rgba(57,135,229,.12);color:var(--s-sent)}
+  .mbans .qs.risk{background:var(--flagbg);color:var(--flag)}
+  .mbans .qs.cast{background:rgba(235,104,52,.12);color:var(--s-ship)}
+  .etasum{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:11px}
+  .etseg{font-size:.72rem;font-weight:700;color:var(--ink2);border-radius:20px;padding:4px 10px;border:1px solid var(--ring);display:flex;align-items:center;gap:6px}
+  .etseg b{color:var(--ink)} .etseg .d{width:9px;height:9px;border-radius:3px;flex:none}
+  .etatbl{background:var(--card);border:1px solid var(--ring);border-radius:13px;overflow:hidden}
+  .etr{display:flex;gap:11px;align-items:flex-start;padding:11px 14px;border-top:1px solid var(--grid)}
+  .etr:first-child{border-top:none}
+  .etr .en{flex:none;width:132px;font-size:.8rem;font-weight:700}
+  .etr .en .ec{display:block;font-weight:600;color:var(--muted);font-size:.68rem}
+  .etr .ed{flex:none;width:78px;font-size:.82rem;font-weight:800}
+  .etr .eg{flex:none;width:84px}
+  .etr .egp{font-size:.57rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em;border-radius:20px;padding:2px 7px;white-space:nowrap}
+  .etr .ew{flex:1;min-width:0;font-size:.74rem;color:var(--ink2)}
+  .etr .ew b{color:var(--ink)}
+  .egp.client{background:var(--flagbg);color:var(--flag)}
+  .egp.product{background:rgba(235,104,52,.13);color:var(--s-ship)}
+  .egp.edit{background:rgba(74,58,167,.13);color:var(--s-signed)}
+  .egp.casting{background:var(--waitbg);color:#0b0b0b}
+  @media (prefers-color-scheme: dark){.egp.casting{color:var(--ink)}}
+  .egp.ontrack{background:rgba(12,163,12,.1);color:var(--s-deliv)}
+  .etr.ok-at-risk{border-left:3px solid var(--flag)}
+  .attn{background:var(--card);border:1px solid var(--ring);border-radius:13px;overflow:hidden}
+  .arow{display:flex;gap:12px;align-items:flex-start;padding:13px 15px;border-top:1px solid var(--grid)}
+  .arow:first-child{border-top:none}
+  .arow.sev-blocked{border-left:3px solid var(--flag)}
+  .arow.sev-behind{border-left:3px solid var(--flag)}
+  .arow.sev-casting{border-left:3px solid var(--s-ship)}
+  .arow.sev-fast{border-left:3px solid var(--wait)}
+  .arow.sev-gated{border-left:3px solid var(--muted)}
+  .arow .arank{flex:none;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--plane);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.72rem;margin-top:1px}
+  @media (prefers-color-scheme: dark){.arow .arank{background:var(--card);color:var(--ink);border:1px solid var(--ring)}}
+  .arow .abody{flex:1;min-width:0}
+  .arow .aname{font-weight:700;font-size:.95rem}
+  .arow .aname .ac{font-weight:600;color:var(--ink2);font-size:.8rem}
+  .arow .awhy{font-size:.79rem;color:var(--ink2);margin-top:3px}
+  .arow .awhy b{color:var(--ink)}
+  .arow .adate{font-size:.72rem;color:var(--muted);margin-top:4px;font-weight:600}
+  .apill{flex:none;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;border-radius:20px;padding:3px 9px;margin-top:2px}
+  .apill.blocked{background:var(--flagbg);color:var(--flag)}
+  .apill.behind{background:var(--flagbg);color:var(--flag)}
+  .apill.casting{background:rgba(235,104,52,.12);color:var(--s-ship)}
+  .apill.fast{background:var(--waitbg);color:#0b0b0b}
+  @media (prefers-color-scheme: dark){.apill.fast{color:var(--ink)}}
+  .apill.gated{background:var(--surface);color:var(--muted)}
+  .motion{background:var(--card);border:1px solid var(--ring);border-radius:13px;overflow:hidden}
+  .mrow{display:flex;gap:10px;align-items:center;padding:10px 15px;border-top:1px solid var(--grid);font-size:.82rem}
+  .mrow:first-child{border-top:none}
+  .mrow .mn{font-weight:700;flex:none;min-width:120px}
+  .mrow .mc{color:var(--ink2);flex:1;min-width:0}
+  .mrow .md{flex:none;font-size:.72rem;color:var(--s-prod);font-weight:700}
+  .mrow .md.done{color:var(--s-deliv)}
+  .load{background:var(--card);border:1px solid var(--ring);border-radius:13px;padding:15px}
+  .lwk{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .lwk .lwl{flex:none;width:96px;font-size:.72rem;color:var(--ink2);font-weight:600}
+  .lwk .lwt{flex:1;height:20px;background:var(--track);border-radius:6px;overflow:hidden}
+  .lwk .lwf{height:100%;border-radius:6px;background:var(--s-ship);display:flex;align-items:center;justify-content:flex-end;padding-right:7px;color:#fff;font-size:.7rem;font-weight:800;min-width:26px}
+  .lwk.hot .lwf{background:var(--flag)}
+  .lwk .lwn{flex:none;font-size:.68rem;color:var(--muted);max-width:150px}
+  .wload{background:var(--card);border:1px solid var(--ring);border-radius:13px;overflow:hidden}
+  .wlrow{display:flex;gap:12px;align-items:flex-start;padding:12px 15px;border-top:1px solid var(--grid)}
+  .wlrow:first-child{border-top:none}
+  .wlic{font-size:1.1rem;flex:none;width:24px;text-align:center}
+  .wlmain{flex:1;min-width:0}
+  .wllbl{font-size:.83rem;font-weight:700}
+  .wld{font-size:.75rem;color:var(--ink2);margin-top:2px}
+  .wlv{flex:none;font-weight:800;font-size:.92rem;color:var(--s-ship);white-space:nowrap;text-align:right}
+  .lane{margin-bottom:13px}
+  .lanehd{display:flex;gap:10px;align-items:flex-start;padding:2px 2px 8px}
+  .laneic{font-size:1rem;flex:none;margin-top:1px}
+  .lanet{font-size:.82rem;font-weight:800}
+  .lanes2{font-size:.72rem;color:var(--muted);margin-top:1px}
+  .laneitems{background:var(--card);border:1px solid var(--ring);border-radius:12px;overflow:hidden}
+  .lane-win .laneitems{border-left:3px solid var(--s-deliv)}
+  .lane-move .laneitems{border-left:3px solid var(--s-ship)}
+  .lane-rock .laneitems{border-left:3px solid var(--s-signed)}
+  .lane-wait .laneitems{border-left:3px solid var(--muted)}
+  .ditem{display:flex;gap:11px;align-items:flex-start;padding:11px 13px;border-top:1px solid var(--grid);cursor:pointer;font-size:.85rem;color:var(--ink2)}
+  .ditem:first-child{border-top:none}
+  .ditem .box{flex:none;width:20px;height:20px;border-radius:6px;border:2px solid var(--ring);display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#fff;background:var(--surface);transition:.12s}
+  .ditem.done .box{background:var(--s-deliv);border-color:var(--s-deliv)}
+  .ditem.done .dtext{opacity:.5;text-decoration:line-through;text-decoration-color:var(--muted)}
+  .ditem.wait{cursor:default}
+  .wdot{flex:none;width:20px;text-align:center;color:var(--muted);font-size:1.2rem;line-height:1}
+  .dtext b{color:var(--ink)} .dtext .do{color:var(--ink2);font-weight:600}
+  .efftag{display:inline-block;font-size:.62rem;font-weight:700;color:var(--muted);border:1px solid var(--ring);border-radius:10px;padding:1px 7px;white-space:nowrap}
+  .rchk{background:var(--card);border:1px solid var(--ring);border-radius:13px;overflow:hidden}
+  .rcrow{display:flex;gap:12px;align-items:flex-start;padding:12px 15px;border-top:1px solid var(--grid)}
+  .rcrow:first-child{border-top:none}
+  .rcrow.v-ok{border-left:3px solid var(--s-deliv)}
+  .rcrow.v-tight{border-left:3px solid var(--wait)}
+  .rcrow.v-no{border-left:3px solid var(--flag)}
+  .rcrow.v-done{border-left:3px solid var(--s-deliv)}
+  .rcbody{flex:1;min-width:0}
+  .rcname{font-weight:700;font-size:.9rem}
+  .rcname .rcc{font-weight:600;color:var(--ink2);font-size:.78rem}
+  .rcmb{font-size:.74rem;color:var(--ink2);margin-top:2px}
+  .rcmb b{color:var(--ink)}
+  .rcreal{font-size:.78rem;color:var(--ink2);margin-top:3px}
+  .rcpill{flex:none;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;border-radius:20px;padding:3px 9px;margin-top:2px}
+  .rcpill.ok{background:rgba(12,163,12,.1);color:var(--s-deliv)}
+  .rcpill.done{background:rgba(12,163,12,.1);color:var(--s-deliv)}
+  .threads{background:var(--card);border:1px solid var(--ring);border-radius:13px;overflow:hidden}
+  .throw{display:flex;gap:12px;align-items:flex-start;padding:12px 15px;border-top:1px solid var(--grid);border-left:3px solid var(--s-signed)}
+  .throw:first-child{border-top:none}
+  .thbody{flex:1;min-width:0}
+  .thn{font-weight:700;font-size:.9rem}
+  .thn .thb{font-weight:600;color:var(--ink2);font-size:.78rem}
+  .thw{font-size:.79rem;color:var(--ink2);margin-top:3px} .thw b{color:var(--ink)}
+  .thpill{flex:none;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;border-radius:20px;padding:3px 9px;margin-top:2px;white-space:nowrap;background:var(--surface);color:var(--ink2);border:1px solid var(--ring)}
+  .rcpill.tight{background:var(--waitbg);color:#0b0b0b}
+  @media (prefers-color-scheme: dark){.rcpill.tight{color:var(--ink)}}
+  .rcpill.no{background:var(--flagbg);color:var(--flag)}
+</style>
+</head>
+<body>
+<!--
+REFRESH LOGIC — rules of record for the weekly rebuild. Keep this design; only swap the DATA arrays (BRANDS, DONEXT, ATTN, MOTION, WKMOVED).
+
+FOOTAGE-DATE MODEL (two clocks):
+- Casting clock starts at the PREVIEW SCRIPT (concept is usually locked; script rarely changes) — casting can begin before final approval. Script timing comes from the "2026_Daily Creative Rundown" ("<Brand> Scripting" rows, by date).
+- Footage date is COMPUTED, not promised = the LAST of {final script approved, product arrived, creator cast} + 7-day film + ~3-day buffer.
+- Delivery footage date = the LATEST creator's date. Pickups reuse product on hand = fresh ~7-day window.
+- Product/shipping timing comes from GMAIL per brand (NO inventory sheet): each brand's own ship->deliver history (e.g. Dekaf ~2d, Verb ~7d; brand-self-fulfilled = "unpredictable", hold at TBD). Blank footage date = pending casting/product -> label "TBD - reason", not late.
+
+MANAGER VIEW:
+- MB usually sets footage dates. If her date can't be met by the model above, FLAG it in her view: "⚠ <date> not achievable - <holdup>; realistic ~ <date>." The board is the neutral messenger, not Tristina.
+- "Needs attention" ranks by REAL urgency (blocked > behind > casting-overdue > fast-turn > gated); on-track work goes to compact "in motion". Use real concept names, not bare D#.
+
+PER-DELIVERY DISCIPLINE (the #1 rule — this is where the board kept going wrong):
+- NEVER flatten a brand into one status. A brand has MULTIPLE deliveries (D1/D2/D3…) and often multiple concepts within a delivery, each at a different stage. Build each delivery separately; don't let a delivered D1 or an in-edit D3 hide an unstarted D4 casting task (or vice versa).
+- WHOSE PLATE: separate Tristina's casting/sourcing work from the design-edit team's work (edits, before/after fixes, statics, animation) and from client-owned steps (approvals, lab results, product). "In production / in edit / delivered" is usually NOT Tristina's plate — do not surface it as her to-do or as an at-risk casting item. Her real open queue is narrow: unstarted/incomplete casting, reshoots she must get from a creator, and contract closes.
+- DON'T INHERIT STALE NOTES: re-verify every blocker against the newest source; a note true last week may be resolved (or a "just-resolved" item may have been false days ago). Check dates. Examples that bit us: "spam/DMARC resolved 7/2" (it was only REPORTED 7/2, still open); a phantom "Biocidin D3 retainer" (really an existing D2 task re-assigned 7/18); "client redefined scope" for Foodbox (settled in June).
+- VERIFY EACH CLAIM has a source + date. Prefer HubSpot dealstage for creator status, Asana task completion + comments for casting/footage, Slack for live blockers, Gmail for negotiation/shipping/reshoot asks.
+- INCLUDE ALL ACTIVE BRANDS: don't drop brands (Mood, Arketa, Nibbles, Wilderdog were missing). Re-scan HubSpot deals + Asana "Source External UGC Creator" tasks each refresh.
+
+ALSO SURFACE (identified gaps — populate when the data supports it):
+- PENDING-YOU-TO-SEND flag: a deal can read "in production" in HubSpot but is only truly in production if Tristina has sent the creator their product + script/guidelines + a due date. Detect via Drive (does the creator's script/guidelines doc exist?) + Gmail (did she email it + a due date?). If missing, flag it as still on HER plate — don't count it as in-production.
+- CLIENT-DELIVERY DEADLINES: track when the CLIENT expects the finished ads (Asana "Send to Client" / "Receive Feedback By" tasks), separate from the creator footage-due date — MB schedules around these. Show where known.
+- RESHOOTS IN FLIGHT: surface reshoots/redos as their own signal, tagged whose plate (creator reshoot = Tristina's; edit fix = design team). It's a big recurring, otherwise-invisible load.
+
+SOURCES: HubSpot (pipeline stage) · Asana (casting + footage due dates, still-to-cast, comments/blockers) · Slack (live blockers, e.g. stolen shipments, spam throttling) · Gmail (outreach, pending-send, per-brand shipping) · Drive 2026_Daily Creative Rundown (scripting/filming/delivery dates - but it mixes creator UGC with BiddyCo's own promo design; use only Scripting/Filming/UGC rows).
+-->
+<div class="wrap">
+  <header>
+    <h1>Production Board <span style="color:var(--muted);font-weight:600">· BiddyCo UGC</span></h1>
+    <p class="sub">Organized by <b>delivery</b> — each brand can have several running at once, each with its own creators &amp; footage date.</p>
+    <div class="srcs">
+      <span class="src">Live pull <b>Mon Jul 20, 2026 · 10:20 AM PT</b></span>
+      <span class="src">Sources: <b>HubSpot</b> · <b>Asana</b> · <b>Slack</b> · <b>Gmail</b> · <b>Drive</b></span>
+      <span class="src" style="color:var(--s-deliv)">✓ Verified vs live sources</span>
+      <span class="src">Refreshes <b>twice daily (AM + midday PT)</b></span>
+    </div>
+    <div class="vtog" role="tablist">
+      <button id="tab-me" class="on" onclick="setView('me')">🎯 My board</button>
+      <button id="tab-mb" onclick="setView('mb')">📋 Manager view</button>
+    </div>
+  </header>
+
+  <div class="viewwrap" id="viewwrap" data-view="me">
+
+  <!-- ============== MY BOARD ============== -->
+  <div id="view-me">
+    <nav class="jump">
+      <a href="#do">🎯 Do next</a>
+      <a href="#cast-head">① Your court</a>
+      <a href="#motion-head">② In motion</a>
+      <a href="#tbl">All creators</a>
+      <button class="fbtn" id="focusBtn" onclick="toggleFocus()">🎯 Focus mode</button>
+    </nav>
+    <div class="focuswrap">
+      <div class="kick">🎯 Focus — just the next thing</div>
+      <div class="fcard" id="focusCard"></div>
+    </div>
+    <div class="kick">Pipeline progress</div>
+    <div class="meter">
+      <div class="mtop"><span class="mpct" id="mpct">–</span><span class="mlbl" id="mlbl"></span></div>
+      <div class="mtrack" id="mtrack"></div>
+      <div class="mfoot" id="mfoot"></div>
+    </div>
+    <div class="kick" id="do">🎯 Do next — by what's in your court × effort</div>
+    <div class="clrbar"><span>Cleared today: <b id="clrN">0</b> / <span id="clrT">0</span></span>
+      <span class="ct"><span class="cf" id="clrFill" style="width:0%"></span></span><span id="clrMsg"></span></div>
+    <div id="lanes"></div>
+    <p class="legnote" style="margin:8px 2px 0">Lanes = what to touch, and in what mode. Quick wins first for momentum; client-blocked work sits in "waiting" so it stops masquerading as your to-do list.</p>
+    <div class="kick">The picture at a glance</div>
+    <div class="stats">
+      <div class="stat"><div class="n" id="s-brands">–</div><div class="l">brands with active deliveries</div></div>
+      <div class="stat g"><div class="n" id="s-motion">–</div><div class="l">creators secured &amp; in motion</div></div>
+      <div class="stat g"><div class="n" id="s-deliv">–</div><div class="l">footage delivered</div></div>
+      <div class="stat c"><div class="n" id="s-cast">–</div><div class="l">still in your casting step</div></div>
+    </div>
+    <div class="kick">How to read it — the color = where a creator is</div>
+    <div class="legend">
+      <div class="legrow" id="legend"></div>
+      <p class="legnote">Left→right is forward progress: <b>gray</b> = still to cast · <b>blues/purple</b> = contract in motion · <b>orange</b> = product shipped · <b>teal</b> = filming · <b>green</b> = delivered. A <span style="color:var(--s-ship);font-weight:700">↑</span> = advanced a stage recently.</p>
+    </div>
+    <div class="funnel">
+      <div class="fbar" id="fbar"></div>
+      <p class="legnote" style="margin-top:11px">Everyone already secured, by stage.</p>
+    </div>
+    <div class="kick" id="cast-head">① Your court — still casting (or waiting to send docs)</div>
+    <div class="grid" id="grid-cast"></div>
+    <details>
+      <summary>② Off your plate — cast, docs sent, now with the creator (tap to expand)</summary>
+      <div class="grid" id="grid-motion" style="margin-top:10px"></div>
+    </details>
+    <details>
+      <summary>Full creator list (accessible table)</summary>
+      <table id="tbl"><thead><tr><th>Brand</th><th>Delivery</th><th>Creator</th><th>Stage</th></tr></thead><tbody></tbody></table>
+    </details>
+    <p class="foot">
+      Live: pipeline stage from HubSpot · casting + footage dates + still-to-cast from Asana · blockers from Slack · outreach + shipping from Gmail · docs from Drive.<br>
+      Ready-to-pay / closed deals hidden. "delivered this week" = creators whose footage landed or entered the Delivered stage Jul 13–19, dated from Asana footage-link comments — individual creator tasks stay open in Asana after footage arrives, so task-status alone undercounts (that's what hid the number). HubSpot corroborates the Delivered stage but exposes no stage-entry date, so closedate is used for the 6 additional closed-won; HubSpot last-modified dates are ignored (a bulk sync touched ~100 deals this week).
+    </p>
+  </div>
+
+  <!-- ============== MANAGER VIEW ============== -->
+  <div id="view-mb">
+    <div class="mbhead">
+      <h2>The week on Tristina's plate — the full picture</h2>
+      <p>The headline: almost every open item is waiting on a <b>client decision, product, or a reshoot</b> — not casting. Below is the real load, then each brand grouped by <b>whose court it's in</b>, with the true reason.</p>
+    </div>
+    <div class="mbans">
+      <h3>📌 Status for MB — Mon Jul 20</h3>
+      <p class="subx">Answering this morning's asks in one place, each with its source. Footage ETAs by task are in the reality-check below — this board keeps them current so they don't need chasing.</p>
+      <div class="qrow"><span class="qk">Foodbox · #1</span><span class="qv">D2 UGC casting = <b>4 external, sourcing</b> (fresh outreach to Stephanie + Herlinda went out 7/19). D1 is live; D2 design/GIFs in production. This is the one item genuinely gated on casting. If a role can't be filled, flagging now for an <b>alt plan (Billo)</b> rather than sitting on it.</span><span class="qs risk">Casting · at-risk</span></div>
+      <div class="qrow"><span class="qk">Adam Health · #2</span><span class="qv"><b>3 to cast</b> from warm leads; scripts approved (earlier gate was the client's concept sign-off). Working the warm leads closed. D1 is in final client edits on the design team.</span><span class="qs cast">Casting</span></div>
+      <div class="qrow"><span class="qk">Footage ETAs</span><span class="qv">Updated by Design task in the <b>reality-check</b> below — best-guess against the standard 4–6 wk turnaround. A blank/TBD means it's genuinely waiting on cast, product, or client approval — that's a real gate, not an un-estimated date.</span><span class="qs done">Updated</span></div>
+      <div class="qrow"><span class="qk">Rishi</span><span class="qv"><b>Proceeding</b> — casting resumed per your 7/20 go (the D4 scope hold is cleared). D3 in production; D2 delivered 7/18.</span><span class="qs go">Go</span></div>
+      <div class="qrow"><span class="qk">Shipped 7/13–19</span><span class="qv"><b>10 creators' footage</b> landed / entered Delivered this week, plus 6 deals closed-won and 6 full deliveries wrapped. The pipeline is moving — the load below is what's genuinely blocked, and by whom.</span><span class="qs done">10 delivered</span></div>
+    </div>
+    <div class="kick">📅 Footage ETA — every active delivery (best-guess vs the 4–6 wk standard)</div>
+    <div class="etasum" id="etasum"></div>
+    <div class="etatbl" id="etatbl"></div>
+    <p class="legnote" style="margin:9px 2px 0">Every open footage date, with <b>what's actually gating it</b>. Dates are best-guess estimates (last of: script approved · product in · creator cast, + ~7-day film + buffer). <b style="color:var(--flag)">Client</b> / <b style="color:var(--s-ship)">product</b> gates set most of the timeline; the casting-gated ones are scheduled within the standard turnaround — only the <b>at-risk</b> row (red edge) genuinely needs a casting decision now.</p>
+    <div class="kick">📋 The load right now</div>
+    <div class="wload" id="wload"></div>
+    <div class="kick">📅 Footage dates MB set — reality check</div>
+    <div class="rchk" id="reality"></div>
+    <p class="legnote" style="margin:8px 2px 0">When MB sets a footage date, this checks it against where the work actually is and suggests a realistic one with the reason. Estimates — every scenario's different.</p>
+    <div class="kick">🧠 Complex conversations — castings that take extra finesse</div>
+    <div class="threads" id="threads"></div>
+    <p class="legnote" style="margin:8px 2px 0">Not every casting is a quick yes. These carry real complexity in the conversation itself — usage rights, exclusivity, rate, a parent's safety line — which is why they take longer to close. Finesse, not delay.</p>
+    <div class="kick">Waiting on the client / outside my hands</div>
+    <div class="attn" id="attnExternal"></div>
+    <p class="legnote" style="margin:8px 2px 0"><b>MB — these are the ones a nudge from you can move:</b> a client decision, a lab result, a product call. They're not Tristina's to force, so this is where you can actually unblock things.</p>
+    <div class="kick">Actively casting this week — the ~25-creator crush</div>
+    <div class="attn" id="attnCasting"></div>
+    <div class="kick">In production &amp; delivered — handled</div>
+    <div class="motion" id="motionList"></div>
+    <details><summary>Casting load by week</summary><div class="load" id="loadWk" style="margin-top:10px"></div></details>
+    <p class="foot">
+      Live from HubSpot · Asana · Slack · Gmail · Drive (incl. the Daily Creative Rundown).<br>
+      "TBD" means the date can't be set yet (waiting on casting, product, script approval, or the client) — expected, not late.
+    </p>
+  </div>
+
+  </div>
+</div>
+
+<script>
+const STAGES=[
+  {key:'tocast',label:'To cast',css:'--s-tocast'},
+  {key:'warm',label:'Warm / negotiation',css:'--s-warm'},
+  {key:'sent',label:'Contract sent',css:'--s-sent'},
+  {key:'signed',label:'Contract signed',css:'--s-signed'},
+  {key:'ship',label:'Product shipped',css:'--s-ship'},
+  {key:'prod',label:'In production · filming',css:'--s-prod'},
+  {key:'deliv',label:'Delivered',css:'--s-deliv'},
+];
+const SLABEL=Object.fromEntries(STAGES.map(s=>[s.key,s.label]));
+const MON={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+
+// creators that advanced recently (from live activity ~Jul 15-18)
+const WKMOVED=new Set(['Briogeo/Afryea','Briogeo/Nataly','Briogeo/Lauren','Every Man Jack/Khaliel','PrayerSong/Seth','Torras/Pedro','Torras/Doug']);
+// Creators whose footage LANDED / entered "Delivered" Jul 13-19. Dated via Asana footage-link COMMENTS:
+// individual creator tasks stay OPEN in Asana after footage arrives (the 🎥 mark is in the task name, not task status),
+// so counting completed tasks undercounts — this is what hid the real number. HubSpot has no stage-entry date field, so delivered-side dating = Asana.
+// Roster: Gravity/Crislyn 7/13, CTCT/Crislyn 7/13, Biocidin/Melissa 7/13, DirtyLabs/Kassandra 7/14, CustomMade/Lauren 7/14, CTCT/Irma 7/16, CTCT/Vasudha 7/16, EMJ/Spencer(hooks) 7/16, Verb/Melissa 7/17, DirtyLabs/Lauren 7/17 (+Gravity/Jared just flipped to Delivered).
+// SEPARATELY: 6 creator deals CLOSED-WON this week by HubSpot closedate (Rishi/Rachel, Mood/Deyanira, Verb/Raquel, iHerb/Ria, Wilderdog/Saeda, Verb/Yani); and 6 full deliveries wrapped (Mood D5, Guava D3, Nibbles D5, Wilderdog D1, Arketa D3, Rishi D2).
+const DELIVERED_WK=10;
+
+// Do-next (my board) — ranked by real urgency
+const LANES=[
+ {k:'win',ic:'⚡',t:'Quick wins — close today',s:'Nearly done, low effort. Knock these out first for momentum.'},
+ {k:'move',ic:'🔥',t:'Move now — in your court, real deadline',s:'Genuine actionable fires, standard difficulty. Outreach moves faster now spam is fixed.'},
+ {k:'rock',ic:'🧗',t:'Big rocks — block real time',s:'Niche / high-effort. Schedule dedicated sourcing; don\'t expect a quick close.'},
+ {k:'wait',ic:'⏸️',t:'Waiting on others — light touch only',s:'Blocked on client, product, or results. Nudge + monitor — not yours to force.'},
+];
+const DONEXT=[
+ {lane:'win',h:'Gravity',b:'last concept (Batch 2-10 "This Could Be You") just needs posting to Billo.',do:'Ask MB to post it — then it\'s off you.',eff:'5 min'},
+ {lane:'win',h:'Verb — Yana',b:'was stuck in your spam; replied 7/18, <b>now in</b> — gave her address 7/19, agreement going out.',do:'Send the agreement & lock her.',eff:'easy'},
+ {lane:'win',h:'CustomMade — Yani',b:'only owes <b>Hook 2 w/ ring</b> (redo), due ~Jul 21.',do:'Nudge her for the one hook.',eff:'easy'},
+ {lane:'move',h:'iHerb — Promo ads',b:'the client\'s <b>#1 priority</b> (30th-anniversary sale) — casting now, first batch already delivered.',do:'Source the promo creators.',eff:'top priority'},
+ {lane:'move',h:'Project Foodbox',b:'D2 UGC casting (4, external) <b>hasn\'t started</b> and it gates D2 — MB flagged Jul 17.',do:'Start sourcing today.',eff:'escalated'},
+ {lane:'move',h:'Guava D4',b:'<b>4 to cast</b> (2 warm), scripts approved Jul 16.',do:'Push casting hard.',eff:'standard'},
+ {lane:'move',h:'Adam Health',b:'<b>3 to cast</b> from warm leads (D2).',do:'Work the warm leads closed.',eff:'standard'},
+ {lane:'move',h:'iHerb D4',b:'<b>fast-turn</b>, 1 of 2 cast (due Jul 24).',do:'Cast the 2nd fast.',eff:'standard'},
+ {lane:'move',h:'Constant Contact — Promo',b:'<b>1 rush creator</b> for the BACKTOBIZ26 promo ads.',do:'Cast — final ads due Aug 3.',eff:'rush'},
+ {lane:'move',h:'Briogeo — Aisha pickup',b:'D2 <b>reshoot</b> — Density Peptide pickup shots (back of hair, slo-mo), due Jul 20.',do:'Get her the reshoot.',eff:'reshoot'},
+ {lane:'move',h:'Verb — Dandruff',b:'<b>2 to cast</b> (D8) — still <b>spam-throttled</b> (DMARC not fixed yet).',do:'Close the 2 (and chase the spam fix).',eff:'gated by spam'},
+ {lane:'rock',h:'Torras',b:'2 to cast (<b>Tech-2 + Outdoor</b>) — iPhone 17 + films outdoors + won\'t use it as a prop. Needle in a haystack.',do:'Block real sourcing time.',eff:'niche · high'},
+ {lane:'rock',h:'Addyi',b:'onboarding; casting not started (due Jul 20), 2–3 needed.',do:'Give it real time.',eff:'onboarding'},
+ {lane:'rock',h:'Biocidin D2',b:'<b>1–2 to cast</b> (D2 — there\'s no D3/retainer, that was a mislabel).',do:'Source the 1–2.',eff:'standard'},
+ {lane:'rock',h:'CustomMade D5',b:'couple concept (Proposer + Receiver) — awaiting footage; client owes script feedback.',do:'Chase footage + feedback.',eff:'standard'},
+ {lane:'rock',h:'Nibbles / Arketa',b:'newer brands with open casting — Nibbles (x1, Jul 18) + Arketa D2.',do:'Source them.',eff:'new'},
+ {lane:'move',h:'Rishi',b:'D4 casting <b>cleared to proceed</b> — MB gave the go 7/20 (scope hold resolved). D3 in prod; chase Lessence\'s signature.',do:'Resume D4 sourcing (6 to cast).',eff:'newly unblocked'},
+ {lane:'wait',h:'EllaDX',b:'2 creators waiting on the <b>client\'s lab results</b> (portal issue) — MB escalating.',do:'Monitor.'},
+ {lane:'wait',h:'Solis — add-on',b:'on-site shoot <b>stalled ~3 wks</b> on client silence; deciding whether to cancel.',do:'One more nudge, then call it.'},
+ {lane:'wait',h:'Dekaf — pickup',b:'summer reshoot (Shulanda) <b>pending her footage</b>.',do:'Nudge for the reshoot.'},
+];
+
+// Manager-view "needs attention" — ranked. sev: blocked|behind|casting|fast|gated
+const WEEKLOAD=[
+ {ic:'🆕',lbl:'New-brand onboarding',v:'12 brands',d:'9 in active build + 3 in intake — each = a filming-guidelines doc + per-creator scripts (~13 guideline sets built in 3 weeks: Wilderdog, Locale, Torras, Hometap, Telrite, Primal Harvest, Addyi, Dirty Labs, PSA…)'},
+ {ic:'🎯',lbl:'Casting',v:'~14 deliveries',d:'still sourcing (~25 creators), most bunched + overdue in one week — the casting wall'},
+ {ic:'✍️',lbl:'Contract negotiations',v:'several open',d:'most creators sign in a reply or two — the high-touch ones (rate, addendums, exclusivity/usage) are the time-sinks. Confirmed open now: Joscelyn (Verb — usage/exclusivity), Austin (Torras $500), Tomázia (Rishi $600), the CustomMade D5 couple; + stale, awaiting your reply: Madison ($850), Taylor, Nicole. Not exhaustive — negotiations live in scattered threads/DMs a search can\'t fully catch.'},
+ {ic:'🔁',lbl:'Reshoots / redos',v:'~15 in flight',d:'almost all client- or product-driven — bad footage, added b-roll, product that underperforms (iHerb, Dekaf, Dirty Labs, Briogeo, CustomMade, Solis, CTCT…)'},
+ {ic:'🎬',lbl:'In production / delivered',v:'29 creators',d:'15 filming + 14 delivered, of 43 active deals — the work that IS moving'},
+];
+// Footage-date reality check — MB's set date vs. where the work actually is. v: ok | tight | no
+const REALITY=[
+ {name:'Telrite / PureTalk',concept:'D1',mbdate:'Jul 24',v:'ok',real:'On track — Denise is filming, copy approved.'},
+ {name:'Awesome Aminos',concept:'D1',mbdate:'Jul 27',v:'ok',real:'On track — Nichelle in production (just watch the expanded scope).'},
+ {name:'Every Man Jack',concept:'D3',mbdate:'Jul 29',v:'tight',real:'3 of 5 delivered, 2 shipped, 1 in prod. Jul 29 is workable but the client is unresponsive (MB flagged it low-priority 7/17). (Charles\' deal closed out.)'},
+ {name:'Briogeo',concept:'D3',mbdate:'Jul 29',v:'tight',real:'Casting done — Nataly signed 7/18. Now gated only on product (orders shipping 7/16–18). Jul 29 holds if product lands this week.'},
+ {name:'CustomMade',concept:'D4',mbdate:'Jul 21',v:'tight',real:'Batch delivered, but Yani\'s redo depends on her travel back — that\'s the risk, not the cast.'},
+ {name:'Constant Contact',concept:'D4',mbdate:'Jul 22',v:'done',real:'Delivered — all 3 creators\' footage is in (incl. the Jul 22 lifestyle pickups). Ads finishing in design; nothing pending on your end. (Promo ads = separate.)'},
+ {name:'Project Foodbox',concept:'D2',mbdate:'Jul 22',v:'no',real:'The D2 UGC casting hasn\'t started (4 to cast) — that\'s what gates D2. Realistic once cast → filmed; MB already asked to reset this date. (Not a scope/stock issue.)'},
+];
+// Footage ETA per active delivery — best-guess vs 4-6wk standard. g: client|product|edit|casting|ontrack
+const ETAS=[
+ {n:'Telrite / PureTalk',c:'D1 · promo',d:'Jul 24',g:'ontrack',w:'Denise in production; copy approved. On track.'},
+ {n:'Awesome Aminos',c:'D1 · picky-eater',d:'Jul 27',g:'ontrack',w:'Nichelle in production; product shipped.'},
+ {n:'CustomMade',c:'D4 · Yani pickup',d:'Jul 22',g:'edit',w:'Batch delivered; Yani re-recording Hook 2 (ring) — depends on her travel back.'},
+ {n:'iHerb',c:'D4 · promo',d:'~Jul 27',g:'casting',w:'Fast-turn, client #1 priority; 1 of 2 cast, filming ~7/22. Casting the 2nd now.'},
+ {n:'Constant Contact',c:'Promo · BACKTOBIZ26',d:'~Jul 28',g:'casting',w:'1 rush creator to cast; scripts approved 7/20, final ads due Aug 3.'},
+ {n:'Every Man Jack',c:'D3 · body wash',d:'Jul 29',g:'client',w:'3 of 5 delivered, 2 shipped, 1 in prod. Gated on an unresponsive client (MB flagged low-priority 7/17).'},
+ {n:'Briogeo',c:'D3 · ASMR curls',d:'Jul 29–Aug 1',g:'product',w:'Cast (Nataly signed 7/18); orders shipping 7/16–18. Holds if product lands this week.'},
+ {n:'Verb',c:'D7/D8 · dandruff',d:'~Jul 28',g:'product',w:'Cast; gated on product delays (2/4 received 7/8). Spam still throttles the 2 D8 leftovers.'},
+ {n:'Addyi',c:'D1 · onboarding',d:'~Aug 3',g:'casting',w:'Casting not started (due 7/20, ~3 needed). No product. New-brand onboarding.'},
+ {n:'Biocidin',c:'D2 · supplement',d:'~Aug 5',g:'casting',w:'Melissa delivered; 1–2 more to cast.'},
+ {n:'Nibbles',c:'D6',d:'Aug 5',g:'casting',w:'1 to cast; creative call done 7/16.'},
+ {n:'Torras',c:'D1 · phone case',d:'~Aug 5',g:'product',w:'Shipments stolen (unresolved 7/14) + 2 niche creators (iPhone 17 / outdoor) to cast. Date holds only once product is replaced.'},
+ {n:'Guava',c:'D4',d:'~Aug 8',g:'product',w:'Scripts approved 7/16; 4 to cast (2 warm) + product still to ship.'},
+ {n:'Adam Health',c:'D2',d:'~Aug 8',g:'casting',w:'3 to cast from warm leads; scripts approved.'},
+ {n:'Rishi',c:'D3 · iced tea',d:'~Aug 10',g:'product',w:'Partly cast (Nicole, Lessence); product shipping (out 7/17). 6 more to cast.'},
+ {n:'Rishi',c:'D4 · iced tea',d:'~Aug 15',g:'casting',w:'Just greenlit 7/20; casting starts now (6 to cast).'},
+ {n:'Project Foodbox',c:'D2 · meal-kit',d:'~Aug 7',g:'casting',w:'4 external to cast (sourcing; outreach out 7/19). AT-RISK — alt plan (Billo) if uncastable.',risk:true},
+ {n:'EllaDX',c:'D2 · lab-test',d:'TBD',g:'client',w:'2 creators gated on the CLIENT\'s lab results (broken patient portal); footage date pulled 7/17. MB escalating to client.'},
+ {n:'CustomMade',c:'D5 · couple',d:'TBD',g:'client',w:'New couple concept; casting 2 + awaiting client script feedback.'},
+ {n:'Dekaf',c:'D3 · pickup',d:'TBD',g:'edit',w:'D3 delivered; Shulanda summer pickup pending her reshoot footage.'},
+ {n:'Solis',c:'D3 · on-site add-on',d:'TBD',g:'client',w:'On-site shoot stalled ~3 wks on client silence; deciding whether to cancel.'},
+ {n:'Wilderdog',c:'D2',d:'TBD',g:'casting',w:'D1 delivered; D2 casting not started.'},
+];
+const GATELABEL={client:'Client',product:'Product',edit:'Edit team',casting:'Your casting',ontrack:'On track'};
+// Complex conversations — castings that carry real negotiation/logistics complexity, for MB.
+const OPENTHREADS=[
+ {name:'Joscelyn Guzman',brand:'Verb · Dandruff',tag:'Usage / exclusivity',w:'Before signing she wants clarity on <b>perpetual usage, exclusivity, and whether she can post the partnership</b> on her own channels — real rights questions that take a careful answer, not a quick yes.'},
+ {name:'Nicole Gengaro',brand:'Awesome Aminos',tag:'Safety',w:'She <b>won\'t put her child on camera</b> (keeps him off for safety), so the concept has to be reworked to land without the kid.'},
+ {name:'Austin Gregory',brand:'Torras',tag:'Rate',w:'Wants <b>~$500</b> for the iPhone concept (above offer) — and he\'s already a niche fit (must own an iPhone 17).'},
+ {name:'Tomázia Benoliel',brand:'Rishi',tag:'Rate + usage',w:'<b>$600 + usage scope</b> ("usage may go beyond organic") — a scope-and-rate conversation, not a simple book.'},
+ {name:'Madison C.',brand:'CustomMade',tag:'Rate + rights',w:'<b>$850 + full usage rights</b> — a heavy one to work through (currently cold).'},
+ {name:'CustomMade D5 couple',brand:'CustomMade',tag:'New concept',w:'A new <b>couple concept</b> (Proposer + Receiver) — casting two people to one idea, with the client\'s script feedback in the loop.'},
+ {name:'Yana Villanueva',brand:'Verb · Dandruff',tag:'Deliverability',w:'Her <b>reply had been stuck in spam</b> (the DMARC issue); she surfaced 7/18 and is <b>now IN</b> — address in, agreement going out. Live proof the spam gate is costing real yeses.'},
+ {name:'Tati Christian',brand:'Briogeo',tag:'Rate',w:'Quoted <b>$600</b> (7/13), above offer — you\'re re-scoping. An open rate conversation, not a booked yes.'},
+];
+// court: 'external' = waiting on client / outside her hands · 'casting' = her active pipeline
+const ATTN=[
+ {court:'casting',sev:'casting',pill:'Cleared to proceed',name:'Rishi',concept:'D4 · Iced Tea / Mocktail',date:'Go — MB 7/20',why:'<b>Cleared to proceed 7/20</b> — MB confirmed the scope hold is resolved; resume D4 sourcing (6 to cast). (D3 in production; chase Lessence\'s signature.)'},
+ {court:'external',sev:'gated',pill:'Client / lab results',name:'EllaDX',concept:'D2 · Health',date:'Awaiting results',why:'The final 2 creators are waiting on the <b>client\'s</b> lab results (one locked behind a broken patient portal). MB is escalating to the client — nothing on your end to push.'},
+ {court:'external',sev:'gated',pill:'Client silent',name:'Solis — add-on',concept:'D3 · On-site add-on',date:'Stalled ~3 wks',why:'The on-site mammogram shoot is stalled on <b>client silence for ~3 weeks</b>; you\'re deciding whether to cancel. (D3 main batch already delivered.)'},
+ {court:'casting',sev:'casting',pill:'Not started · MB flagged',name:'Project Foodbox',concept:'D2 · Meal-kit UGC',date:'Gates D2',why:'D1 is live and D2\'s design/GIFs are in production — the missing piece is the <b>D2 UGC casting (4, external)</b>. MB flagged 7/17 and re-escalated 7/20 (wants status today). Fresh outreach out 7/19 (Stephanie, Herlinda). If roles can\'t be filled, flag for an <b>alt plan (Billo)</b>. (No scope/stock issue — settled in June.)'},
+ {court:'casting',sev:'fast',pill:'Client #1 priority',name:'iHerb — Promo ads',concept:'30th-anniversary sale',date:'Casting now',why:'The client\'s <b>top priority</b> — anniversary promo ads. First batch delivered ~Jul 17; more creators being sourced now. (Plus D4 fast-turn: 1 of 2 cast.)'},
+ {court:'casting',sev:'blocked',pill:'Product theft + niche',name:'Torras',concept:'D1 · Phone case',date:'Design on track; 2 to cast',why:'Design is <b>on track</b> (cuts delivered Jul 15–16). Product: Dave\'s 2 shipments stolen + no restock, worked around via Amazon iPhone mockups. Open piece = <b>2 niche creators to cast</b> (iPhone 17 + outdoor + won\'t use as a prop).'},
+ {court:'casting',sev:'casting',pill:'Casting overdue',name:'Guava',concept:'D4 · scripts approved Jul 16',date:'Sourcing 4',why:'Sourcing 4 (2 warm) — inside this week\'s casting wall. (D1/D2 delivered; D3 in client-revision on the edit team.)'},
+ {court:'casting',sev:'casting',pill:'Casting overdue',name:'Adam Health',concept:'D2 · scripts approved',date:'Sourcing 3',why:'Sourcing 3 from warm leads. (D1 is in final client edits on the design team.)'},
+ {court:'casting',sev:'fast',pill:'Rush · Aug 3',name:'Constant Contact — Promo',concept:'BACKTOBIZ26 promo ads',date:'Final ads Aug 3',why:'The 2 killed Social Starter <i>concepts</i> → replaced by 2 promo ads; needs <b>1 rush creator</b>. Final Aug 3, launch ~Aug 8. (D4\'s cast creators are separately on track.)'},
+ {court:'casting',sev:'gated',pill:'2 to cast · spam-gated',name:'Verb',concept:'D8 · Dandruff Jumbo',date:'Throttled',why:'2 creators still to cast on D8 — <b>still throttled by the outreach/spam (DMARC) issue, which is NOT fixed yet</b> (it\'s with ops). (D7 is cast + in edit; D9 fragrance is backlog, not started.)'},
+ {court:'casting',sev:'casting',pill:'Reshoot + close',name:'Briogeo',concept:'D3 + D2 pickup',date:'Jul 20',why:'D3 is cast — <b>Nataly signed 7/18</b>. The open piece is the D2 <b>Aisha pickup reshoot</b> (Density Peptide — back-of-hair / slo-mo) due Jul 20. (Others in edit.)'},
+ {court:'casting',sev:'casting',pill:'Casting',name:'Biocidin',concept:'D2 · Supplement',date:'1–2 to cast',why:'D2 open — Melissa\'s footage is with the edit team; <b>1–2 more creators to source</b>. (No D3/retainer — that was a mislabel.)'},
+ {court:'casting',sev:'casting',pill:'Onboarding',name:'Addyi',concept:'D1 · onboarding',date:'Due Jul 20',why:'Onboarding; casting not started (2–3 needed).'},
+ {court:'casting',sev:'casting',pill:'New',name:'Nibbles / Arketa',concept:'new casting tasks',date:'Just landed',why:'Two newer brands with open casting: Nibbles (x1, landed Jul 18) and Arketa D2.'},
+ {court:'casting',sev:'gated',pill:'Nearly closed',name:'Gravity',concept:'Batch 2-10',date:'To Billo',why:'Down to the last concept ("This Could Be You") — going to Billo (MB posts). Crislyn + Jared both delivered.'},
+];
+
+// In motion — on track
+const MOTION=[
+ {name:'Telrite / PureTalk',concept:'D1 · PureTalk promo',status:'Denise filming — copy approved Jul 16, in production (due Jul 24)',done:false},
+ {name:'Constant Contact',concept:'D4 · FB/IG ads',status:'D4 fully delivered — all 3 creators\' footage in (incl. Jul 22 pickups); ads finishing in design. (Promo ads = separate new casting item.)',done:true},
+ {name:'Every Man Jack',concept:'D3 · Body Wash & Beard',status:'3 of 5 delivered, 2 shipped, 1 in prod; low priority per MB 7/17 (client unresponsive). Charles\' deal closed out.',done:false},
+ {name:'PrayerSong',concept:'D3 · 6 concepts',status:'Casting done — 5 songs delivered → with edit team; Seth signed, awaiting his song then films',done:false},
+ {name:'CustomMade',concept:'D4 · Custom ring',status:'4 ads delivered; final 2 in edit (Yani owes 1 hook). D5 couple = the open casting item.',done:false},
+ {name:'Awesome Aminos',concept:'D1 · Picky-eater kids',status:'Nichelle filming, footage due ~Jul 24 — casting done. (Scope growth = design team, not you.)',done:false},
+ {name:'Dirty Labs',concept:'D1 · Detergent',status:'Both creators delivered Jul 17 — done on your end; leftover fix is David\'s (edit), not a reshoot on you.',done:true},
+ {name:'Dekaf',concept:'D3 · Decaf',status:'D3 delivered. One summer pickup (Shulanda) pending her reshoot footage.',done:false},
+ {name:'Mood',concept:'through D6',status:'Recurring, active — cast + in production across recent deliveries.',done:false},
+ {name:'Wilderdog',concept:'D1',status:'Active — creators cast/closing (Saeda closed Jul 19); a leash pickup shot in flight.',done:false},
+ {name:'Solis',concept:'D3 main',status:'Main batch delivered / wrapped (the on-site add-on is the stalled item, see left).',done:true},
+];
+
+// brand cards data (my board)
+const BRANDS=[
+ {name:'Torras',cast:1,deliveries:[
+   {batch:'D1',concept:'Phone case (tech creator)',castingDue:'Jul 8',footageDue:null,toCast:2,product:true,creators:[['Pedro','signed'],['Doug','sent']],
+    note:'Shipments stolen after delivery (unresolved as of 7/14) — client has no replacement stock; supplementing via Amazon + dummy units. 2 of 4 cast; sourcing outdoor 3rd. MB asked 7/16 for a casting ETA — still needs a reply.'}]},
+ {name:'Project Foodbox',cast:1,deliveries:[
+   {batch:'D2',concept:'Meal-kit UGC',castingDue:'Jul 13',toCast:4,creators:[],
+    note:'D1 live; D2 design/GIFs in production. D2 UGC casting (4, external) not started — gates D2, MB flagged Jul 17. (Scope/stock settled in June.)'}]},
+ {name:'Gravity',cast:1,deliveries:[
+   {batch:'D1',concept:'Creator explainer',castingDue:'Jul 10',footageDue:'Jul 17',toCast:1,creators:[['Crislyn','deliv']],
+    note:'Nearly done — last concept (Batch 2-10) going to Billo (MB posts). Crislyn delivered / in edit; Jared in production.'},
+   {batch:'D2',concept:'Signing up with friends',creators:[['Jared','deliv']]}]},
+ {name:'Guava',cast:1,deliveries:[
+   {batch:'D4',concept:'(scripts approved)',castingDue:'Jul 10',toCast:4,product:true,creators:[],
+    note:'4 external to cast (2 warm). Footage TBD pending product.'}]},
+ {name:'iHerb',cast:1,deliveries:[
+   {batch:'D4',concept:'Anniversary / promo',castingDue:'Jul 24',toCast:1,product:true,creators:[],
+    note:'Fast-turn — 1 of 2 cast, casting due Jul 24. ⚠ Separate CGN D4 casting task has NO owner in Asana — assign it.'},
+   {batch:'D3',concept:'Hauls / hooks',creators:[['Katlyn','deliv'],['Zain','deliv'],['Maddie','prod']]}]},
+ {name:'Adam Health',cast:1,deliveries:[
+   {batch:'D2',concept:'(scripts approved)',castingDue:'Jul 8',toCast:3,creators:[],note:'3 to cast from warm leads.'}]},
+ {name:'Verb',cast:1,castnote:'2 Dandruff leftovers still casting',deliveries:[
+   {batch:'D8',concept:'Dandruff Jumbo',castingDue:'Jun 23',footageDue:'Jul 17',toCast:2,product:true,creators:[['Drew','prod'],['Tehilah','ship']]},
+   {batch:'D7',concept:'Dry Shampoo Powder',footageDue:'Jul 17',creators:[['Melissa','deliv'],['Vasudha','prod']]}]},
+ {name:'Rishi',cast:1,deliveries:[
+   {batch:'D3',concept:'Iced Tea / Mocktail',castingDue:'Jul 10',toCast:4,product:true,creators:[['Nicole','ship'],['Lessence','sent']],
+    note:'D3 partly cast; product shipping.'},
+   {batch:'D4',concept:'Iced Tea / Mocktail',castingDue:'Jul 8',toCast:6,product:true,creators:[],note:'Cleared to proceed 7/20 — MB resolved the scope hold; resume casting (6 to cast).'}]},
+ {name:'Addyi',cast:1,deliveries:[
+   {batch:'D1',concept:'(onboarding)',castingDue:'Jul 20',toCast:3,creators:[],note:'Onboarding; casting not started — due Jul 20 (tomorrow). Sharon asked 7/16 for +1 creator → ~3 needed. No product.'}]},
+ {name:'Briogeo',cast:1,castnote:'D3 cast — Nataly signed 7/18; open piece is the D2 Aisha reshoot',deliveries:[
+   {batch:'D3',concept:'ASMR / curls',castingDue:'Jul 8',footageDue:'Jul 29',toCast:0,product:true,creators:[['Afryea','signed'],['Lauren','ship'],['Nataly','signed']]},
+   {batch:'D1',concept:'Strong hair',creators:[['Alexandra','prod']]}]},
+
+ {name:'Telrite / PureTalk',cast:0,deliveries:[
+   {batch:'D1',concept:'Summer Sale promo',footageDue:'Jul 24',creators:[['Denise','prod']],oknote:'Denise cast + instructions sent — filming now / in production (copy approved Jul 14).'}]},
+ {name:'Constant Contact',cast:0,deliveries:[
+   {batch:'D4',concept:'FB/IG ads',footageDue:'Jul 22',creators:[['Vasudha','deliv'],['Irma','deliv'],['Crislyn','deliv']],
+    note:'D4 fully delivered — footage in (incl. Jul 22 pickups); ads finishing in design. Promo ads (BACKTOBIZ26) = separate new casting item (1 rush, final Aug 3).'}]},
+ {name:'Every Man Jack',cast:0,deliveries:[
+   {batch:'D3',concept:'Body Wash & Beard',footageDue:'Jul 29',creators:[['Khaliel','ship'],['Doug','signed'],['Justin','prod'],['Brandon','deliv'],['Spencer','deliv']],
+    note:'Mostly done; contract cleanup + last shipment 7/17.'}]},
+ {name:'PrayerSong',cast:0,deliveries:[
+   {batch:'D3',concept:'Faux press / texting',creators:[['Seth','ship'],['Justine','ship'],['Framary','prod'],['Graciela','prod'],['Sarah','prod'],['Nichelle','prod']],
+    note:'Basically done — Seth signed + song ordered; songs in production. Digital, no shipping.'}]},
+ {name:'CustomMade',cast:0,deliveries:[
+   {batch:'D4',concept:'Custom ring',footageDue:'Jul 21',creators:[['Lauren','deliv'],['Yani','deliv']],
+    note:'Delivered; Yani in redo loop (Cheryl re-record).'}]},
+ {name:'Awesome Aminos',cast:0,deliveries:[
+   {batch:'D1',concept:'Picky-eater kids',footageDue:'Jul 27',creators:[['Nichelle','ship']],oknote:'Signed · product shipped — in production'}]},
+ {name:'EllaDX',cast:0,deliveries:[
+   {batch:'D2',concept:'Lab-test creators',creators:[['Makenzie','prod'],['Alexandra','prod']],
+    note:'2 creators gated on lab results; footage TBD until results in.'}]},
+ {name:'Dirty Labs',cast:0,deliveries:[
+   {batch:'D1',concept:'Detergent',footageDue:'Jul 18',creators:[['Lauren','deliv'],['Kassandra','deliv']],
+    note:'Both delivered Jul 17 — done on your end. Any remaining tweak is a design/edit fix (David), not yours.'}]},
+ {name:'Dekaf',cast:0,deliveries:[
+   {batch:'D3 · Pickup',concept:'Summer decaf',delivered:'Jun 22',creators:[['Shulanda','prod']]}]},
+ {name:'Biocidin',cast:0,deliveries:[
+   {batch:'D2',concept:'Supplement',delivered:'Jul 9',creators:[['Melissa','deliv']]}]},
+ {name:'Solis',cast:0,deliveries:[
+   {batch:'D3 · Add-on',concept:'On-site (mammogram)',delivered:'Jun 5',creators:[['Melissa','ship']]}]},
+];
+
+const TODAY=new Date(2026,6,19);
+function parseDue(s){const p=s.split(' ');return new Date(2026,MON[p[0]]-1,+p[1]);}
+function daysOut(s){return Math.round((parseDue(s)-TODAY)/864e5);}
+function castingFlag(d){
+  if(!d.toCast || !d.castingDue) return '';
+  const days=daysOut(d.castingDue);
+  if(days>=4) return '';
+  const msg = days<0 ? `Casting date <b>${d.castingDue}</b> passed <b>${-days}d ago</b> with <b>${d.toCast}</b> still to cast`
+    : `Casting date <b>${d.castingDue}</b> is only <b>${days}d</b> out for <b>${d.toCast}</b> creators`;
+  return `<div class="warn">⚠ ${msg}.</div>`;
+}
+let cur=null;
+function chip(who,st){const moved=WKMOVED.has(cur.name+'/'+who)?'<span class="mv">↑</span>':'';return `<span class="chip ${st}">${who}${moved}</span>`;}
+function delivery(d){
+  let chips=(d.creators||[]).map(([who,st])=>chip(who,st)).join('');
+  if(d.toCast>0) chips+=`<span class="chip tocast">+${d.toCast} to cast</span>`;
+  const head=[`<span class="dbatch">${d.batch}</span>`];
+  if(d.concept) head.push(`<span class="dconcept">${d.concept}</span>`);
+  if(d.castingDue && d.toCast) head.push(`<span class="dfoot">casting due <b>${d.castingDue}</b></span>`);
+  if(d.footageDue) head.push(`<span class="dfoot">footage due <b>${d.footageDue}</b></span>`);
+  if(d.product) head.push(`<span class="prodtag">📦 needs product</span>`);
+  if(d.delivered) head.push(`<span class="ddeliv">✓ delivered ${d.delivered}</span>`);
+  return `<div class="del"><div class="delhead">${head.join('')}</div>
+     ${chips?`<div class="chips">${chips}</div>`:''}
+     ${castingFlag(d)}
+     ${d.note?`<div class="dnote">${d.note}</div>`:''}
+     ${d.oknote?`<div class="oknote">${d.oknote}</div>`:''}</div>`;
+}
+function brandProgress(b){
+  let total=0,done=0;
+  b.deliveries.forEach(d=>{(d.creators||[]).forEach(([,st])=>{total++;if(st==='deliv')done++;});if(d.toCast)total+=d.toCast;});
+  if(total===0)return '';
+  return `<div class="bprog"><span class="bl">${done}/${total} delivered</span><span class="bt"><span class="bf" style="width:${Math.round(done/total*100)}%"></span></span></div>`;
+}
+function card(b){
+  cur=b;
+  const el=document.createElement('div');el.className='c'+(b.cast?' cast':'');
+  el.innerHTML=`<div class="chead"><span class="cname">${b.name}</span>${b.cast?'<span class="tag">needs casting</span>':''}</div>
+    ${brandProgress(b)}
+    ${b.castnote?`<div class="castnote">${b.castnote}</div>`:''}
+    ${b.deliveries.map(delivery).join('')}`;
+  return el;
+}
+const gc=document.getElementById('grid-cast'), gm=document.getElementById('grid-motion');
+function dueVal(b){let best=9999;b.deliveries.forEach(d=>{[d.footageDue,d.castingDue].forEach(fd=>{if(fd){const p=fd.split(' ');const v=MON[p[0]]*100+(+p[1]);if(v<best)best=v;}});});return best;}
+const bySoonest=(a,b)=>dueVal(a)-dueVal(b);
+BRANDS.filter(b=>b.cast).forEach(b=>gc.appendChild(card(b)));
+BRANDS.filter(b=>!b.cast).sort(bySoonest).forEach(b=>gm.appendChild(card(b)));
+
+const leg=document.getElementById('legend');
+STAGES.forEach(s=>{const e=document.createElement('span');e.className='lg';e.innerHTML=`<span class="dot" style="background:var(${s.css})"></span>${s.label}`;leg.appendChild(e);});
+
+const counts={};let motion=0,deliv=0,cast=0,brands=BRANDS.length;
+BRANDS.forEach(b=>{b.deliveries.forEach(d=>{(d.creators||[]).forEach(([,st])=>{counts[st]=(counts[st]||0)+1;motion++;if(st==='deliv')deliv++;});if(d.toCast)cast+=d.toCast;});});
+const fbar=document.getElementById('fbar');
+['warm','sent','signed','ship','prod','deliv'].forEach(k=>{if(!counts[k])return;const seg=document.createElement('div');seg.className='fseg';seg.style.flex=counts[k];seg.style.background=`var(${STAGES.find(s=>s.key===k).css})`;seg.textContent=counts[k];fbar.appendChild(seg);});
+document.getElementById('s-brands').textContent=brands;
+document.getElementById('s-motion').textContent=motion;
+document.getElementById('s-deliv').textContent=deliv;
+document.getElementById('s-cast').textContent='~'+cast;
+(function(){
+  const total=motion+cast,prod=counts['prod']||0;
+  document.getElementById('mpct').textContent=Math.round(deliv/total*100)+'%';
+  document.getElementById('mlbl').innerHTML='of the pipeline is <b>delivered</b>';
+  document.getElementById('mtrack').innerHTML=`<span class="mfill deliv" style="width:${deliv/total*100}%"></span><span class="mfill prod" style="width:${prod/total*100}%"></span>`;
+  document.getElementById('mfoot').innerHTML=
+    `<span><b style="color:var(--s-deliv)">${deliv}</b> delivered</span><span><b style="color:var(--s-prod)">${prod}</b> filming</span>`+
+    `<span><b>${motion}</b> secured</span><span><b style="color:var(--s-ship)">~${cast}</b> still to cast</span><span class="wk" title="Creators whose footage landed / entered Delivered, Jul 13–19 (dated via Asana footage-link comments): Gravity–Crislyn, CTCT–Crislyn/Irma/Vasudha, Biocidin–Melissa, Dirty Labs–Kassandra/Lauren, CustomMade–Lauren + Yani (hooks), EMJ–Spencer (hooks), Verb–Melissa (+Jared/Gravity D2 just flipped). PLUS 6 closed-won this week (Rishi–Rachel, Mood–Deyanira, Verb–Raquel/Yani, iHerb–Ria, Wilderdog–Saeda) and 6 full deliveries wrapped (Mood D5, Guava D3, Nibbles D5, Wilderdog D1, Arketa D3, Rishi D2).">▲ ${DELIVERED_WK} creators delivered this week</span>`;
+})();
+const tb=document.querySelector('#tbl tbody');
+BRANDS.forEach(b=>b.deliveries.forEach(d=>(d.creators||[]).forEach(([who,st])=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${b.name}</td><td>${d.batch}</td><td>${who}</td><td>${SLABEL[st]}</td>`;tb.appendChild(tr);})));
+
+// Do-next lanes
+(function(){const actionable=['win','move','rock'];document.getElementById('lanes').innerHTML=LANES.map(L=>{const items=DONEXT.map((it,i)=>({it,i})).filter(x=>x.it.lane===L.k);if(!items.length)return '';const rows=items.map(({it,i})=>actionable.includes(L.k)?`<div class="ditem" data-i="${i}" onclick="toggleDone(${i})"><span class="box">✓</span><div class="dtext"><b>${it.h}</b> — ${it.b} <span class="do">→ ${it.do}</span>${it.eff?` <span class="efftag">${it.eff}</span>`:''}</div></div>`:`<div class="ditem wait"><span class="wdot">•</span><div class="dtext"><b>${it.h}</b> — ${it.b} <span class="do">→ ${it.do}</span></div></div>`).join('');return `<div class="lane lane-${L.k}"><div class="lanehd"><span class="laneic">${L.ic}</span><div><div class="lanet">${L.t}</div><div class="lanes2">${L.s}</div></div></div><div class="laneitems">${rows}</div></div>`;}).join('');document.getElementById('clrT').textContent=DONEXT.filter(it=>actionable.includes(it.lane)).length;})();
+function toggleDone(i){const el=document.querySelector('.ditem[data-i="'+i+'"]');if(!el)return;el.classList.toggle('done');const done=document.querySelectorAll('.ditem.done').length;const total=+document.getElementById('clrT').textContent;document.getElementById('clrN').textContent=done;document.getElementById('clrFill').style.width=Math.round(done/total*100)+'%';const msg=document.getElementById('clrMsg');if(done>=total){msg.textContent='🎉 all cleared!';msg.className='cleared-all';}else if(done>0){msg.textContent='keep going →';msg.className='';}else{msg.textContent='';}buildFocus();}
+function buildFocus(){const actionable=['win','move','rock'];let pick=null;for(let i=0;i<DONEXT.length;i++){if(!actionable.includes(DONEXT[i].lane))continue;const el=document.querySelector('.ditem[data-i="'+i+'"]');if(el&&!el.classList.contains('done')){pick=DONEXT[i];break;}}if(!pick)pick=DONEXT.find(it=>it.lane==='win')||DONEXT[0];document.getElementById('focusCard').innerHTML=`<div class="fk">Your next move</div><div class="fn">${pick.h}</div><div class="fd">${pick.b}</div><div class="fdo">→ ${pick.do}</div>`;}
+function toggleFocus(){buildFocus();document.body.classList.toggle('focusing');document.getElementById('focusBtn').classList.toggle('on');}
+buildFocus();
+function setView(v){document.getElementById('viewwrap').dataset.view=v;document.getElementById('tab-me').classList.toggle('on',v==='me');document.getElementById('tab-mb').classList.toggle('on',v==='mb');if(v==='mb')document.body.classList.remove('focusing');}
+if(location.search.indexOf('view=mb')>=0)setView('mb');
+
+// MB view: the week's load
+document.getElementById('wload').innerHTML=WEEKLOAD.map(w=>`<div class="wlrow"><span class="wlic">${w.ic}</span><div class="wlmain"><div class="wllbl">${w.lbl}</div><div class="wld">${w.d}</div></div><span class="wlv">${w.v}</span></div>`).join('');
+// Footage ETA table + gate summary
+(function(){
+  const gc={client:0,product:0,edit:0,casting:0,ontrack:0};
+  ETAS.forEach(e=>gc[e.g]++);
+  const gcol={client:'var(--flag)',product:'var(--s-ship)',edit:'var(--s-signed)',casting:'var(--wait)',ontrack:'var(--s-deliv)'};
+  const order=['client','product','edit','casting','ontrack'];
+  document.getElementById('etasum').innerHTML=order.filter(k=>gc[k]).map(k=>`<span class="etseg"><span class="d" style="background:${gcol[k]}"></span><b>${gc[k]}</b> ${GATELABEL[k]}</span>`).join('')
+    +`<span class="etseg" style="border-style:dashed"><b>${ETAS.filter(e=>e.d==='TBD').length}</b> TBD (waiting on client/product/cast)</span>`;
+  document.getElementById('etatbl').innerHTML=ETAS.map(e=>`<div class="etr${e.risk?' ok-at-risk':''}"><div class="en">${e.n}<span class="ec">${e.c}</span></div><div class="ed">${e.d}</div><div class="eg"><span class="egp ${e.g}">${GATELABEL[e.g]}</span></div><div class="ew">${e.w}</div></div>`).join('');
+})();
+document.getElementById('reality').innerHTML=REALITY.map(r=>{const lbl={ok:'✓ On track',tight:'⚠ Tight',no:'✗ Not yet realistic',done:'✓ Delivered'}[r.v];return `<div class="rcrow v-${r.v}"><div class="rcbody"><div class="rcname">${r.name} <span class="rcc">· ${r.concept}</span></div><div class="rcmb">MB's date: <b>${r.mbdate}</b></div><div class="rcreal">${r.real}</div></div><span class="rcpill ${r.v}">${lbl}</span></div>`;}).join('');
+document.getElementById('threads').innerHTML=OPENTHREADS.map(t=>`<div class="throw"><div class="thbody"><div class="thn">${t.name} <span class="thb">· ${t.brand}</span></div><div class="thw">${t.w}</div></div><span class="thpill">${t.tag}</span></div>`).join('');
+// MB view: attention grouped by whose court it's in
+function renderAttn(id,court){
+  document.getElementById(id).innerHTML=ATTN.filter(a=>a.court===court).map(a=>`<div class="arow sev-${a.sev}"><div class="abody"><div class="aname">${a.name} <span class="ac">· ${a.concept}</span></div><div class="awhy">${a.why}</div><div class="adate">${a.date}</div></div><span class="apill ${a.sev}">${a.pill}</span></div>`).join('');
+}
+renderAttn('attnExternal','external');
+renderAttn('attnCasting','casting');
+// MB view: in motion
+(function(){
+  const el=document.getElementById('motionList');
+  MOTION.forEach(m=>{const row=document.createElement('div');row.className='mrow';
+    row.innerHTML=`<span class="mn">${m.name}</span><span class="mc">${m.concept} — ${m.status}</span><span class="md ${m.done?'done':''}">${m.done?'✓ delivered':'in motion'}</span>`;
+    el.appendChild(row);});
+})();
+// MB view: casting load by week
+(function(){
+  const weeks=[{l:'Jul 7–13',lo:7,hi:13},{l:'Jul 14–20',lo:14,hi:20},{l:'Jul 21–27',lo:21,hi:27},{l:'Jul 28+',lo:28,hi:99}];
+  weeks.forEach(w=>{w.n=0;w.b=[];});
+  BRANDS.forEach(b=>b.deliveries.forEach(d=>{if(!d.toCast||!d.castingDue)return;const day=+d.castingDue.split(' ')[1];const mo=MON[d.castingDue.split(' ')[0]];if(mo!==7)return;const w=weeks.find(w=>day>=w.lo&&day<=w.hi);if(!w)return;w.n+=d.toCast;w.b.push(b.name);}));
+  const max=Math.max(...weeks.map(w=>w.n),1);
+  document.getElementById('loadWk').innerHTML=weeks.map(w=>`<div class="lwk ${w.n>=8?'hot':''}"><span class="lwl">${w.l}</span><span class="lwt"><span class="lwf" style="width:${Math.max(w.n/max*100,6)}%">${w.n||''}</span></span><span class="lwn">${w.b.join(', ')||'—'}</span></div>`).join('')
+    +`<p class="legnote" style="margin-top:10px">Creators to cast, by the week casting is due. The <b style="color:var(--flag)">Jul 7–13</b> wall is why several dates are tight at once — the load one late project never shows.</p>`;
+})();
+</script>
+</body>
+</html>
